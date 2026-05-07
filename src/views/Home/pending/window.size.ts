@@ -14,5 +14,4 @@ export const pendingConfig: WindowConfigData = {
   maximizable: true,
   route: "/pending",
   maximize: false,
-  disableContextMenu: true,
 };

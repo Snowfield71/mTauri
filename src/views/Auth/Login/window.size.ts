@@ -14,5 +14,4 @@ export const loginConfig: WindowConfigData = {
   resizable: false,
   maximizable: false,
   route: "/auth/login",
-  disableContextMenu: true,
 };

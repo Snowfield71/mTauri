@@ -14,5 +14,4 @@ export const addConfig: WindowConfigData = {
   maximizable: true,
   route: "/add",
   maximize: false,
-  disableContextMenu: true,
 };

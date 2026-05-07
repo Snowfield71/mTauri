@@ -8,5 +8,4 @@ export const findMethodsConfig: WindowConfigData = {
   resizable: false,
   maximizable: false,
   route: "/auth/findMethods",
-  disableContextMenu: true,
 };

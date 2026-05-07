@@ -17,7 +17,6 @@ export const createHomeConfig = (userInfo?: { token: string; userId: string; acc
     maximizable: true,
     route: userDataStr ? `/home?userData=${userDataStr}` : "/home",
     maximize: true,
-    disableContextMenu: true,
   };
 };
 
@@ -32,5 +31,4 @@ export const homeConfig: WindowConfigData = {
   maximizable: true,
   route: "/home",
   maximize: true,
-  disableContextMenu: true,
 };

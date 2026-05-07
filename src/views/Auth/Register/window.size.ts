@@ -14,5 +14,4 @@ export const registerConfig: WindowConfigData = {
   x: 500,
   y: 200,
   route: "/auth/register",
-  disableContextMenu: true,
 };

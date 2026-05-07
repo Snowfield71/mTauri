@@ -67,7 +67,6 @@ type WindowConfigData = {
   y?: number;
   maximize?: boolean;
   userData?: string;
-  disableContextMenu?: boolean;
 };
 
 type FindMethodsCardContentData = {
