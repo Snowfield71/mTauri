@@ -107,14 +107,14 @@ import { loginConfig } from './window.size'
 import { invoke } from '@tauri-apps/api/core'
 import { listen } from '@tauri-apps/api/event'
 import { toggleState } from '../../../util/index'
-import { saveAccountData } from '../../../types/auth'
+import type { SaveAccountData } from '../../../types/auth'
 import { initWindowConfig } from '@/util/windowConfig'
 import type { UnlistenFn } from '@tauri-apps/api/event'
 import { UserInfoStore } from '@/store/user/user.store'
 import { registerConfig } from '../Register/window.size'
 import { forgetPwdConfig } from '../ForgetPwd/window.size'
 import type { UserInfoData } from '@/store/user/user.type'
-import { homeConfig } from '@/views/Home/Home/window.size'
+import { createHomeConfig } from '@/views/Home/Home/window.size'
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { ArrowUp, ArrowDown, Close } from '@element-plus/icons-vue'
 import UserAgreement from '../../../components/Auth/UserAgreement.vue'
@@ -132,7 +132,7 @@ watch(isRegister, (newValue, oldValue) => {
 const unlisten = ref<UnlistenFn | null>(null)
 
 // 账号列表
-const savedAccounts = ref<saveAccountData[]>([])
+const savedAccounts = ref<SaveAccountData[]>([])
 
 // 默认头像
 const defaultAvatarSrc = ref<string>('http://192.168.2.4:3000/uploads/avatars/DefaultAvatar.png')
@@ -221,13 +221,16 @@ const submit = async () => {
       store.setUserInfo(userInfoData)
       store.setToken(token)
 
-      invoke('create_window', { config: homeConfig})
+      const homeWindowConfig = createHomeConfig({
+        token: token,
+        userId: res.user.userId.toString(),
+        account: res.user.account,
+        avatar: res.user.avatar
+      })
 
-      setTimeout(() => {
-        invoke('close_window').catch(err => {
-          console.error('关闭窗口失败:', err)
-        })
-      }, 100)
+      invoke('create_window', { config: homeWindowConfig})
+      
+      form.value.password = ''
     } else {
         ElMessage({
           message: '账号或密码错误',
@@ -254,7 +257,7 @@ const submit = async () => {
   }
 
 // 选择账号
-const selectSavedAccount = (item: saveAccountData, index: number) => {
+const selectSavedAccount = (item: SaveAccountData, index: number) => {
   form.value.account = item.account
   accountDropdownVisible.value = false
 

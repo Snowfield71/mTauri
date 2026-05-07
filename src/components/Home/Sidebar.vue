@@ -176,13 +176,13 @@ const closeWindow = async() => {
 }
 
 onMounted(async () => {
-  const userList = await userStore.getUserInfo()
+  const userList = userStore.getUserInfo()
   const user = userList?.[0]
   if (user) {
     userInfo.value = user
-    formData.value.userId = user.userId
-    formData.value.nickname = user.nickname
-    formData.value.phoneNumber = user.phoneNumber
+    formData.value.userId = user.userId || 0
+    formData.value.nickname = user.nickname || ''
+    formData.value.phoneNumber = user.phoneNumber || ''
     previewUrl.value = user.avatar
   }
 })

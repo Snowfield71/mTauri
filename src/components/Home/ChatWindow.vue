@@ -69,7 +69,7 @@
 </template>
 
 <script setup lang="ts">
-import { deleteFriend } from "@/api/friend"
+import { deleteFriend as apiDeleteFriend } from "@/api/friend"
 import type { MsgItem } from "@/types/friend"
 import { io, Socket } from 'socket.io-client'
 import { emit, listen } from "@tauri-apps/api/event"
@@ -102,10 +102,10 @@ const friendInfo = ref({
 
 const msgList = ref<MsgItem[]>([])
 
-const deleteFriend = () => {
+const handleDeleteFriend = () => {
   const fId = friendStore.selectedId
   const cId = friendStore.friendInfo.conversationId
-  deleteFriend(fId).then((res: any) => {
+  apiDeleteFriend(fId).then((res: any) => {
     if (res.code == 200) {
       deleteConversation(fId, cId).then((cRes: any) => {
         if (cRes.code == 200) {
@@ -141,7 +141,7 @@ const open = (type: string, content: string) => {
       if (type == 'msg') {
         clearMsg()
       } else {
-        deleteFriend()
+        handleDeleteFriend()
       }
     })
     .catch(() => {
@@ -189,7 +189,7 @@ const sendMsg = () => {
   if (!socket) return
 
   if (userInfo) {
-    const msg: msgItem = {
+    const msg: MsgItem = {
       conversationId: friendInfo.value.conversationId,
       senderId: userInfo.userId || 0,
       content: sendContent.value
@@ -273,6 +273,14 @@ onMounted(() => {
 
 onUnmounted(() => {
   if (unListen) unListen()
+  
+  if (socket) {
+    socket.off('connect')
+    socket.off('newMessage')
+    socket.off('conversationUpdate')
+    socket.disconnect()
+    socket = null
+  }
 })
 </script>
 

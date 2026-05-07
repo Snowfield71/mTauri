@@ -48,15 +48,11 @@
 import { ref, onMounted } from 'vue'
 import { PendingListItem } from '@/types/friend'
 import { emit, listen } from "@tauri-apps/api/event"
-import { UserInfoStore } from '@/store/user/user.store'
 import { ArrowDown, ArrowUp, Bell } from '@element-plus/icons-vue'
 import { getPendingFriendList, agreeFriendRequest, rejectFriendRequest } from '@/api/friend'
 
-const userStore = UserInfoStore()
-
 const pendingList = ref<PendingListItem[]>([])
 const isSelect = ref(false)
-const userId = ref()
 
 const getPendingLists = () => {
   getPendingFriendList().then((res: any) => {

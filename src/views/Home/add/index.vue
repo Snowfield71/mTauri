@@ -81,9 +81,6 @@ import { Search, Close, MessageBox } from '@element-plus/icons-vue'
 const keyword = ref('')
 const userStore = UserInfoStore()
 const friendStore = FriendStore()
-const userId = ref<number>(
-  userStore.userInfo?.[0]?.userId || 0
-)
 const searchList = ref<SearchListItem[]>([])
 
 const clearKeyword = () => {
@@ -140,7 +137,7 @@ const open = (item: SearchListItem, index: number) => {
 
 const handleAdd = (item: SearchListItem, index: number) => {
   let friendId = item.id
-  applyFriend(userId.value, item.id).then((res: any) => {
+  applyFriend(item.id).then((res: any) => {
     if (res.code == 200) {
       if (res.message == '添加成功') {
         ElMessage.success(res.message)

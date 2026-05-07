@@ -88,10 +88,10 @@
 
 <script setup lang="ts">
 import { debounce } from '@/util'
-import { deleteFriend, getPendingFriendList } from '@/api/friend'
+import { deleteFriend as apiDeleteFriend, getPendingFriendList } from '@/api/friend'
 import { io, Socket } from 'socket.io-client'
 import { invoke } from '@tauri-apps/api/core'
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { deleteConversation } from '@/api/conversation'
 import { emit, listen } from "@tauri-apps/api/event"
 import { ElMessage, ElMessageBox } from 'element-plus'
@@ -160,7 +160,7 @@ const deleteFriend = (friendListItem: FriendListItem, index: number) => {
   const fId = friendListItem.targetUserId
   const cId = friendListItem.conversationId
   
-  deleteFriend(fId).then((res: any) => {
+  apiDeleteFriend(fId).then((res: any) => {
     if (res.code == 200) {
       deleteConversation(fId, cId).then((cRes: any) => {
         if (cRes.code == 200) {
@@ -330,6 +330,16 @@ onMounted(async () => {
       friendList.value.unshift(targetItem)
     }
   })
+})
+
+onUnmounted(() => {
+  if (socket) {
+    socket.off('friendApplyReceived')
+    socket.off('friendListUpdate')
+    socket.off('pendingApplyUpdate')
+    socket.disconnect()
+    socket = null
+  }
 })
 </script>
 

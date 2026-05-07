@@ -6,6 +6,7 @@ export const UserInfoStore = defineStore("userInfo", {
     userInfo: [] as UserInfoData[],
     token: "",
     isRegister: false,
+    windowUserId: "",
   }),
 
   actions: {
@@ -37,6 +38,14 @@ export const UserInfoStore = defineStore("userInfo", {
 
     deleteUserInfo(index: number) {
       this.userInfo.splice(index, 1);
+    },
+
+    setWindowUserId(userId: string) {
+      this.windowUserId = userId;
+    },
+
+    getWindowUserId() {
+      return this.windowUserId;
     },
   },
 

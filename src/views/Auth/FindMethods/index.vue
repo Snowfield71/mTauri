@@ -25,7 +25,7 @@ import { navTo } from '../../../util/index'
 import { findMethodsConfig } from './window.size'
 import { UserInfoStore } from '@/store/user/user.store'
 import { initWindowConfig } from '../../../util/windowConfig'
-import type { findMethodsCardContentData } from '../../../types/auth'
+import type { FindMethodsCardContentData } from '../../../types/auth'
 
 const router = useRouter()
 const store = UserInfoStore()
@@ -49,7 +49,7 @@ const desensitizedPhone = computed(() => {
   )
 })
 
-const findMethods = computed<findMethodsCardContentData[]>(() => [
+const findMethods = computed<FindMethodsCardContentData[]>(() => [
   {
     name: 'PhoneMethod',
     queryParams: { phoneNumber: desensitizedPhone.value },
