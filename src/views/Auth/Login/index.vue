@@ -229,6 +229,7 @@ const submit = async () => {
       })
 
       invoke('create_window', { config: homeWindowConfig})
+      invoke('close_window')
       
       form.value.password = ''
     } else {
