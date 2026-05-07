@@ -5,7 +5,7 @@ export const LoginWindowHeight = 400;
 
 export const loginConfig: WindowConfigData = {
   label: "login",
-  title: "用户登录",
+  title: "",
   width: LoginWindowWidth,
   height: LoginWindowHeight,
   x: 700,

@@ -88,6 +88,7 @@
 
 <script setup lang="ts">
 import { debounce } from '@/util'
+import { baseURL } from '@/util/request'
 import { deleteFriend as apiDeleteFriend, getPendingFriendList } from '@/api/friend'
 import { io, Socket } from 'socket.io-client'
 import { invoke } from '@tauri-apps/api/core'
@@ -118,7 +119,7 @@ const searchResult = ref<FriendListItem[]>([])
 let socket: Socket | null = null
 
 const connectWebSocket = () => {
-  socket = io('http://192.168.2.4:3000', {
+  socket = io(baseURL, {
     query: {
       userId: userInfo.value.userId
     }

@@ -70,6 +70,7 @@
 
 <script setup lang="ts">
 import { deleteFriend as apiDeleteFriend } from "@/api/friend"
+import { baseURL } from '@/util/request'
 import type { MsgItem } from "@/types/friend"
 import { io, Socket } from 'socket.io-client'
 import { emit, listen } from "@tauri-apps/api/event"
@@ -153,7 +154,7 @@ const open = (type: string, content: string) => {
 }
 
 const connectWebSocket = (conversationId: number) => {
-  socket = io('http://192.168.2.4:3000', {
+  socket = io(baseURL, {
     query: {
       userId: userInfo?.userId
     }

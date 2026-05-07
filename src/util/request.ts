@@ -52,6 +52,7 @@ request.interceptors.response.use(
   (error) => {
     if (error.response) {
       const status = error.response.status;
+      const res = error.response.data;
 
       if (status === 401) {
         if (typeof window !== "undefined" && (window as any).ElMessage) {
@@ -72,12 +73,17 @@ request.interceptors.response.use(
         if (typeof window !== "undefined" && (window as any).ElMessage) {
           (window as any).ElMessage.warning("接口不存在");
         }
+      } else if (status === 422) {
+        const message = res?.message || "请求参数错误";
+        if (typeof window !== "undefined" && (window as any).ElMessage) {
+          (window as any).ElMessage.warning(message);
+        }
       } else if (status >= 500) {
         if (typeof window !== "undefined" && (window as any).ElMessage) {
           (window as any).ElMessage.warning("服务器内部错误");
         }
       } else {
-        const message = error.response.data?.message || "请求失败";
+        const message = res?.message || "请求失败";
         if (typeof window !== "undefined" && (window as any).ElMessage) {
           (window as any).ElMessage.warning(message);
         }

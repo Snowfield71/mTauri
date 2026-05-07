@@ -107,7 +107,7 @@ import { loginConfig } from './window.size'
 import { invoke } from '@tauri-apps/api/core'
 import { listen } from '@tauri-apps/api/event'
 import { toggleState } from '../../../util/index'
-
+import { baseURL } from '../../../util/request'
 import type { SaveAccountData } from '../../../types/auth'
 import { initWindowConfig } from '@/util/windowConfig'
 import type { UnlistenFn } from '@tauri-apps/api/event'
@@ -134,7 +134,7 @@ const unlisten = ref<UnlistenFn | null>(null)
 
 const savedAccounts = ref<SaveAccountData[]>([])
 
-const defaultAvatarSrc = ref<string>('http://192.168.2.4:3000/uploads/avatars/DefaultAvatar.png')
+const defaultAvatarSrc = ref<string>(baseURL + '/uploads/avatars/DefaultAvatar.png')
 
 const form = ref({
   account: '',
@@ -229,13 +229,18 @@ const submit = async () => {
 
       form.value.password = ''
     } else {
-        ElMessage({
-          message: '账号或密码错误',
-          type: 'warning'
-        })
-      }
+      ElMessage({
+        message: res.message || '账号或密码错误',
+        type: 'warning'
+      })
+    }
+  }).catch((error: any) => {
+    ElMessage({
+      message: error?.message || '登录失败',
+      type: 'warning'
     })
-  }
+  })
+}
 
 const openAuthWindow = async (type: 'Register' | 'ForgetPwd') => {
     try {

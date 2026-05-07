@@ -67,6 +67,7 @@ type WindowConfigData = {
   y?: number;
   maximize?: boolean;
   userData?: string;
+  decorations?: boolean;
 };
 
 type FindMethodsCardContentData = {

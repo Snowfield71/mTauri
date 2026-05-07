@@ -8,7 +8,7 @@ export const createHomeConfig = (userInfo?: { token: string; userId: string; acc
   
   return {
     label: `home-${userInfo?.userId || Math.random().toString(36).substr(2, 9)}`,
-    title: userInfo?.account || "mtauri",
+    title: "",
     width: indexWindowWidth,
     height: indexWindowHeight,
     x: 700,
