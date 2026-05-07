@@ -268,6 +268,8 @@ const selectSavedAccount = (item: SaveAccountData, index: number) => {
 
 const removeAccount = (index: number) => {
   store.deleteUserInfo(index)
+  savedAccounts.value.splice(index, 1)
+  form.value.account = ''
 }
 
 onMounted(async () => {
