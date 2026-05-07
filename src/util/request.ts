@@ -1,8 +1,10 @@
 import axios from "axios";
 import { UserInfoStore } from "@/store/user/user.store";
 
+export const baseURL = "http://192.168.2.4:3000";
+
 const request = axios.create({
-  baseURL: "http://192.168.2.4:3000",
+  baseURL: baseURL,
   timeout: 10000,
 });
 
@@ -18,7 +20,7 @@ const publicPaths = [
 request.interceptors.request.use(
   (config) => {
     const url = config.url || "";
-    
+
     if (!publicPaths.some((path) => url.includes(path))) {
       const store = UserInfoStore();
       const token = store.getToken();
@@ -27,7 +29,7 @@ request.interceptors.request.use(
         config.headers.Authorization = `Bearer ${token}`;
       }
     }
-    
+
     return config;
   },
   (error) => {
@@ -50,14 +52,14 @@ request.interceptors.response.use(
   (error) => {
     if (error.response) {
       const status = error.response.status;
-      
+
       if (status === 401) {
         if (typeof window !== 'undefined' && (window as any).ElMessage) {
           (window as any).ElMessage.warning("登录已过期，请重新登录");
         }
         const store = UserInfoStore();
         store.setToken("");
-        
+
         if (typeof window !== 'undefined') {
           const router = require('@/router/index').default;
           router.push({ name: "Login" });
@@ -89,7 +91,7 @@ request.interceptors.response.use(
         (window as any).ElMessage.warning("请求配置错误");
       }
     }
-    
+
     return Promise.reject(error);
   },
 );
