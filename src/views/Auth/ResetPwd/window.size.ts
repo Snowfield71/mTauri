@@ -2,7 +2,7 @@ import { WindowConfigData } from "../../../types/auth";
 
 export const registerConfig: WindowConfigData = {
   label: "authResetPwd",
-  title: "注册",
+  title: "",
   width: 400,
   height: 400,
   resizable: false,

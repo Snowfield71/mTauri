@@ -1,8 +1,8 @@
 <template>
-  <div id="form-checkbox">
-     <el-checkbox v-model="agreementAccepted" />
-     <span id="form-agree">
-        已经阅读并同意<a href="#"> 服务协议 </a>和<a href="#"> 隐私保护指引</a>
+  <div id="form-checkbox" @click="toggleAgreement">
+     <el-checkbox :model-value="agreementAccepted" />
+     <span id="form-agree" tabindex="-1">
+        已经阅读并同意<a href="#" tabindex="-1"> 服务协议 </a>和<a href="#" tabindex="-1"> 隐私保护指引</a>
      </span>
   </div>
 </template>
@@ -15,7 +15,13 @@ const props = defineProps({
   },
 })
 
-const agreementAccepted = ref(props.agreementAccepted)
+const emit = defineEmits<{
+  (e: 'update:agreementAccepted', value: boolean): void
+}>()
+
+const toggleAgreement = () => {
+  emit('update:agreementAccepted', !props.agreementAccepted)
+}
 </script>
 
 <style scoped>

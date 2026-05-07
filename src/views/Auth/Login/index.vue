@@ -23,18 +23,19 @@
         <div class="div-placeholder"></div>
       </template>
           <template #suffix>
-            <el-icon id="account-icon">
-              <Close v-show="form.account && savedAccounts.length" @click="clearInputField('account')" />
+            <el-icon id="account-icon" tabindex="-1">
+              <Close v-show="form.account && savedAccounts.length" @click="clearInputField('account')" tabindex="-1" />
             </el-icon>
             <el-dropdown
+              tabindex="-1"
               ref="accountDropdownRef"
               trigger="click"
               :popper-options="accountDropdownOptions"
             >
-              <el-icon>
-                <arrow-down v-show="accountDropdownVisible && savedAccounts.length" @click="accountDropdownVisible = toggleState(accountDropdownVisible)" />
-                <arrow-up v-show="!accountDropdownVisible && savedAccounts.length" @click="accountDropdownVisible = toggleState(accountDropdownVisible)" />
-                <Close v-show="form.account && !savedAccounts.length" @click="clearInputField('account')" />
+              <el-icon tabindex="-1">
+                <arrow-down v-show="accountDropdownVisible && savedAccounts.length" @click="accountDropdownVisible = toggleState(accountDropdownVisible)" tabindex="-1" />
+                <arrow-up v-show="!accountDropdownVisible && savedAccounts.length" @click="accountDropdownVisible = toggleState(accountDropdownVisible)" tabindex="-1" />
+                <Close v-show="form.account && !savedAccounts.length" @click="clearInputField('account')" tabindex="-1" />
               </el-icon>
               <template #dropdown>
                 <div class="custom-dropdown-menu">
@@ -48,8 +49,9 @@
                     <el-icon
                       @click.stop="removeAccount(index)"
                       class="dropdown-remove-icon"
+                      tabindex="-1"
                     >
-                      <Close />
+                      <Close tabindex="-1" />
                     </el-icon>
                   </div>
                 </div>
@@ -70,8 +72,8 @@
           </template>
           <template #suffix>
             <div class="input-slot pwd-slot">
-              <el-icon class="slot-icon">
-               <Close v-show="form.password" @click="clearInputField('password')" />
+              <el-icon class="slot-icon" tabindex="-1">
+               <Close v-show="form.password" @click="clearInputField('password')" tabindex="-1" />
               </el-icon>
             </div>
           </template>

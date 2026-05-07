@@ -18,8 +18,11 @@
 </template>
 
 <script setup lang="ts">
+import { useRoute } from 'vue-router'
+import { ref } from 'vue'
 import { ElCard } from 'element-plus'
 import { useRouter } from 'vue-router'
+import { findPhone } from '@/api/auth'
 import { onMounted, computed } from 'vue'
 import { navTo } from '../../../util/index'
 import { findMethodsConfig } from './window.size'
@@ -34,10 +37,18 @@ const phoneNumber = ref('')
 onMounted(() => {
   // 设置窗口大小
   initWindowConfig(findMethodsConfig)
-  let storePhone = store.userInfo[0].phoneNumber
+  let storePhone = store.userInfo[0]?.phoneNumber
 
   if (storePhone) {
     phoneNumber.value = storePhone
+  } else {
+    const route = useRoute()
+    const account = route.query.account as string
+    findPhone(account).then((res: any) => {
+      if (res.data) {
+        phoneNumber.value = res.data.phoneNumber
+      }
+    })
   }
 })
 
@@ -73,6 +84,7 @@ p {
 }
 
 #container {
+  width: calc(100% - 2px);
   height: calc(100% - 2px);
 }
 

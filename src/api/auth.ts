@@ -23,6 +23,10 @@ export const tokenLogin = (data: TokenLogin) => {
   return request.post("/auth/token-login", data);
 };
 
+export const findPhone = (account: string) => {
+  return request.post("/auth/find-phone", { account });
+};
+
 export const resetPassword = (phoneNumber: string, password: string) => {
   return request.post("/auth/reset-password", {
     phoneNumber: phoneNumber,

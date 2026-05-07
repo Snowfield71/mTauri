@@ -5,7 +5,7 @@ export const RegisterWindowHeight = 500;
 
 export const registerConfig: WindowConfigData = {
   label: "register",
-  title: "注册",
+  title: "",
   width: RegisterWindowWidth,
   height: RegisterWindowHeight,
   resizable: false,

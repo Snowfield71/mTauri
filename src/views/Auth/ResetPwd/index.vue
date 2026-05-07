@@ -4,12 +4,13 @@
       <p id="subtitle">设置新密码</p>
 
       <el-form
-        ref="formRef"
+        ref="resetPwdFormRef"
         :model="form"
-        status-iconf
+        status-icon
         :rules="rules"
         label-width="auto"
         class="form"
+        @submit.prevent="submitForm"
       >
         <el-form-item prop="password">
           <el-input
@@ -31,7 +32,9 @@
             <el-button
               class="btn"
               :disabled="!(form.password.length >= 6 && form.newPassword.length >= 6)"
-              type="primary" @click="submitForm(formRef)">
+              type="primary"
+              @click="submitForm"
+            >
                 确定
             </el-button>
           </div>
@@ -43,13 +46,13 @@
 <script setup lang="ts">
   import { ref } from 'vue'
   import { useRoute } from 'vue-router'
+  import { ElForm, ElMessage, FormInstance } from 'element-plus'
   import { invoke } from '@tauri-apps/api/core'
   import { resetPassword } from '@/api/auth.ts'
   import { debounce } from '../../../util/index.ts'
-  import { ElForm, FormInstance } from 'element-plus'
 
   const route = useRoute()
-  const formRef = ref<FormInstance>()
+  const resetPwdFormRef = ref<FormInstance>()
 
   const loading = ref(false)
 
@@ -71,40 +74,49 @@
     newPassword: ''
   })
 
-  const submitForm = ( formEl: FormInstance | undefined ) => {
-    loading.value = true
+  const submitForm = () => {
+    if (!resetPwdFormRef.value) return
 
-    debounce(async () => {
-    try {
-      if (!formEl) return
+    resetPwdFormRef.value.validate((valid) => {
+      if (!valid) return
 
-      if (form.value.password != form.value.newPassword) {
-        ElMessage.warning('两次输入密码不一致')
-        return
-      }
+      loading.value = true
 
-      resetPassword(phoneNumber, form.value.newPassword).then((res: any) => {
-        if (res.code === 200) {
-          ElMessage.success('密码重置成功')
+      debounce(async () => {
+        try {
+          if (form.value.password != form.value.newPassword) {
+            ElMessage.warning('两次输入密码不一致')
+            loading.value = false
+            return
+          }
 
-          setTimeout(() => {
-            invoke('close_window').catch(err => {
-              console.error('关闭窗口失败:', err)
-            })
-          }, 2000)
-        } else {
-          ElMessage.warning('密码重置失败')
+          resetPassword(phoneNumber, form.value.newPassword).then((res: any) => {
+            if (res.code === 200) {
+              ElMessage.success('密码重置成功')
+
+              setTimeout(() => {
+                invoke('close_window').catch(err => {
+                  console.error('关闭窗口失败:', err)
+                })
+              }, 2000)
+            } else {
+              ElMessage.warning('密码重置失败')
+            }
+          }).finally(() => {
+            loading.value = false
+          })
+        } catch (error) {
+          console.error(error)
+          loading.value = false
         }
-      })
-    } finally {
-      loading.value = false
-    }
-  }, 500)()
+      }, 500)()
+    })
   }
 </script>
 
 <style scoped>
   #container {
+    width: calc(100% - 2px);
     height: calc(100% - 2px);
   }
 
