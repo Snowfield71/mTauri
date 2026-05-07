@@ -43,11 +43,11 @@ const nextStep = () => {
       }
 
       verifyPhone({
-        type: 'phone',
+        type: 'account',
         value: account.value,
-        name: '手机号',
+        name: '账号',
       }).then((res: any) => {
-        if (res.code === 200) {
+        if (res.code === 409) {
           ElMessage.success('验证成功')
           router.push({ name: 'FindMethods'})
         } else {

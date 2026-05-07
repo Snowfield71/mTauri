@@ -1,4 +1,4 @@
-export type friendListItem = {
+export type FriendListItem = {
   conversationId: number;
   targetUserId: number;
   nickname: string;
@@ -9,7 +9,7 @@ export type friendListItem = {
   account: string;
 };
 
-export type msgItem = {
+export type MsgItem = {
   id?: number;
   conversationId: number;
   senderId: number;
@@ -18,7 +18,7 @@ export type msgItem = {
   createdAt?: string;
 };
 
-export type FriendListResponse = { data; data: friendList[] };
+export type FriendListResponse = { data: FriendListItem[] };
 
 export type SearchListItem = {
   id: number;
@@ -26,4 +26,11 @@ export type SearchListItem = {
   nickname: string;
   avatar: string;
   isAdded?: boolean;
+};
+
+export type PendingListItem = {
+  id: number;
+  account: string;
+  nickname: string;
+  avatar: string;
 };

@@ -159,10 +159,16 @@ const submit = async () => {
           console.error('关闭窗口失败:', err)
         })
       }, 100)
-    } else {
+    }
+  }).catch((err: any) => {
+    if (err) {
       ElMessage({
-        message: '登录失败',
+        message: '登录过期, 请重新登录',
         type: 'warning'
+      })
+      
+      router.push({
+        name: 'Login'
       })
     }
   })

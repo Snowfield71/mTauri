@@ -1,25 +1,35 @@
 import request from "@/util/request";
 
-export const getFriendList = (userId: number) => {
-  return request.get("/friend/list", {
-    params: {
-      userId: userId,
-    },
+export const getFriendList = () => {
+  return request.get("/friend/list");
+};
+
+export const rejectFriendRequest = (friendId: number) => {
+  return request.post("/friend/reject", {
+    friendId,
   });
 };
 
-export const addFriend = (userId: number, friendId: number) => {
-  return request.post("/friend/add", {
-    userId: userId,
-    friendId: friendId,
+export const agreeFriendRequest = (friendId: number) => {
+  return request.post("/friend/agree", {
+    friendId,
   });
 };
 
-export const delFriend = (userId: number, friendId: number) => {
+export const getPendingFriendList = () => {
+  return request.get("/friend/pending-list");
+};
+
+export const applyFriend = (friendId: number) => {
+  return request.post("/friend/apply", {
+    friendId,
+  });
+};
+
+export const deleteFriend = (friendId: number) => {
   return request.delete("/friend/delete", {
     params: {
-      userId: userId,
-      friendId: friendId,
+      friendId,
     },
   });
 };
@@ -27,7 +37,7 @@ export const delFriend = (userId: number, friendId: number) => {
 export const searchFriend = (keyword: string) => {
   return request.get("/friend/search", {
     params: {
-      keyword: keyword,
+      keyword,
     },
   });
 };

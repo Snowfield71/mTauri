@@ -118,7 +118,7 @@ import { homeConfig } from '@/views/Home/Home/window.size'
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { ArrowUp, ArrowDown, Close } from '@element-plus/icons-vue'
 import UserAgreement from '../../../components/Auth/UserAgreement.vue'
-import { ElForm, ElPopover, ElMessage, ElDropdown } from 'element-plus'
+import { ElForm, ElPopover, ElMessage, ElDropdown, ElButton } from 'element-plus'
 
 const store = UserInfoStore()
 const isRegister = computed(() => store.isRegister) 
@@ -134,34 +134,8 @@ const unlisten = ref<UnlistenFn | null>(null)
 // 账号列表
 const savedAccounts = ref<saveAccountData[]>([])
 
-onMounted(async () => {
-  initWindowConfig(loginConfig)
-  let info = store.getUserInfo()[0]
-  if (info) {
-    savedAccounts.value = [{
-      avatar: info.avatar,
-      account: info.account
-    }]
-  }
-
-  unlisten.value = await listen<{ userInfo: UserInfoData }>('registration-completed', (event) => {
-    store.setUserInfo(event.payload.userInfo)
-    // 重置注册状态
-    store.setIsRegister(false)
-
-    form.value.account = event.payload.userInfo.account
-    savedAccounts.value[selectedAvatarIndex.value].avatar = event.payload.userInfo.avatar
-  })
-})
-
-onUnmounted(async () => {
-  if (unlisten.value) {
-    await unlisten.value()
-  }
-})
-
 // 默认头像
-const defaultAvatarSrc = ref<string>('/DefaultAvatar.png')
+const defaultAvatarSrc = ref<string>('http://192.168.2.4:3000/uploads/avatars/DefaultAvatar.png')
 
 // 登录表单数据
 const form = ref({
@@ -293,6 +267,33 @@ const selectSavedAccount = (item: saveAccountData, index: number) => {
 const removeAccount = (index: number) => {
   store.deleteUserInfo(index)
 }
+
+onMounted(async () => {
+  initWindowConfig(loginConfig)
+  let info = store.getUserInfo()
+
+  if (info && info.length > 0) {
+    savedAccounts.value = info.map(item => ({
+      account: item.account || '',
+      avatar: item.avatar || '',
+    }))
+  }
+
+  unlisten.value = await listen<{ userInfo: UserInfoData }>('registration-completed', (event) => {
+    store.setUserInfo(event.payload.userInfo)
+    // 重置注册状态
+    store.setIsRegister(false)
+
+    form.value.account = event.payload.userInfo.account
+    savedAccounts.value[selectedAvatarIndex.value].avatar = event.payload.userInfo.avatar
+  })
+})
+
+onUnmounted(async () => {
+  if (unlisten.value) {
+    await unlisten.value()
+  }
+})
 </script>
 
 <style scoped>

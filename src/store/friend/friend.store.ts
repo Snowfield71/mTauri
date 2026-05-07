@@ -1,39 +1,47 @@
 import { defineStore } from "pinia";
-import type { friendInfo } from "./friend.type";
-import type { friendListItem } from "@/types/friend";
+import type { FriendInfo } from "./friend.type";
+import type { FriendListItem } from "@/types/friend";
 
 export const FriendStore = defineStore("friendList", {
   state: () => ({
-    friendList: [] as friendListItem[],
-    friendInfo: {} as friendInfo,
-    selectId: 0,
+    friendList: [] as FriendListItem[],
+    friendInfo: {} as FriendInfo,
+    selectedId: 0,
   }),
   actions: {
-    setSelectId(id: number) {
-      this.selectId = id;
+    setSelectedId(id: number) {
+      this.selectedId = id;
     },
-    setFriendInfo(info: friendInfo) {
+    setFriendInfo(info: FriendInfo) {
       this.friendInfo = info;
     },
-    setFriendList(item: friendListItem[]) {
-      this.friendList = item;
+    setFriendList(items: FriendListItem[]) {
+      this.friendList = items;
     },
     getFriendInfo(id: number) {
-      let friendListItem = this.friendList.find(
-        (item) => item.targetUserId == id,
+      const friendItem = this.friendList.find(
+        (item) => item.targetUserId === id,
       );
-      return friendListItem;
+      return friendItem;
     },
     resetFriendListUnreadCount(id: number) {
-      let friendListItem = this.friendList.find(
-        (item) => item.targetUserId == id,
+      const friendItem = this.friendList.find(
+        (item) => item.targetUserId === id,
       );
-      if (friendListItem) {
-        friendListItem.unreadCount = 0;
+      if (friendItem) {
+        friendItem.unreadCount = 0;
       }
     },
     deleteFriendByIndex(index: number) {
       this.friendList.splice(index, 1);
+    },
+    clearFriendInfo() {
+      this.friendInfo = {
+        conversationId: 0,
+        nickname: "",
+        avatar: "",
+        account: "",
+      };
     },
   },
   persist: true,

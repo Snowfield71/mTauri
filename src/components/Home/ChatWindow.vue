@@ -1,19 +1,46 @@
 <template>
-  <div class="container">
+  <div class="container" @click="handleClickOutside">
     <div class="top">
       <span>{{ friendInfo.nickname }}</span>
+      <el-icon @click.stop="drawerVisible=true">
+        <MoreFilled />
+      </el-icon>
     </div>
 
     <div class="content">
       <el-scrollbar ref="scrollRef">
         <div class="msg-wrapper">
+          <el-drawer
+            direction="rtl"
+            v-model="drawerVisible"
+            :modal="false"
+            :show-close="false"
+            custom-class="chat-right-drawer"
+            :with-header="false"
+            style="position: absolute; top: 56px; height: calc(100vh-56px); background-color: #f2f2f2;"
+            size="300px"
+            @click.stop
+          >
+            <template #default>
+              <div class="drawer-group">
+                <div>
+                  <el-button class="drawer-btn" @click="open('msg', '聊天记录')">删除聊天记录</el-button>
+                </div>
+                <el-button class="drawer-btn" type="danger" @click="open('friend', '好友')">删除好友</el-button>
+              </div>
+            </template>
+          </el-drawer>
+
           <div
             class="msg"
             :class="userInfo?.userId == item.senderId ? 'me' : 'other'"
             v-for="(item, index) in msgList"
             :key="index"
           >
-            <img class="avatar" :src="friendInfo.avatar" />
+            <img 
+              class="avatar" 
+              :src="userInfo?.userId == item.senderId ? userInfo.avatar : friendInfo.avatar" 
+              alt="avatar" />
             <div class="bubble">{{ item.content }}</div>
           </div>
         </div>
@@ -25,24 +52,33 @@
         v-model="sendContent"
         type="textarea" 
         :rows="4"
-        @keydown.enter="sendMsg" />
+        placeholder="请输入内容，按 Enter 发送"
+        @keydown.enter.exact.prevent="sendMsg"
+        @keydown.ctrl.enter="(e) => {
+          sendContent += '\n'
+          e.preventDefault()
+        }"
+      />
       <el-button 
         class="send-btn" 
         type="primary"
-        :disabled="!(sendContent.length > 0)"
+        :disabled="!(sendContent.trim().length > 0)"
         @click="sendMsg">发送</el-button>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import type { msgItem } from "@/types/friend"
+import { deleteFriend } from "@/api/friend"
+import type { MsgItem } from "@/types/friend"
 import { io, Socket } from 'socket.io-client'
-import { listen } from "@tauri-apps/api/event"
+import { emit, listen } from "@tauri-apps/api/event"
+import { MoreFilled } from "@element-plus/icons-vue"
+import { deleteConversation } from "@/api/conversation"
 import { UserInfoStore } from "@/store/user/user.store"
 import { FriendStore } from "@/store/friend/friend.store"
-import { readMessage, getMessageList } from "@/api/message"
 import { ref, watch, nextTick, onMounted, onUnmounted } from "vue"
+import { readMessage, getMessageList, clearMessage } from "@/api/message"
 
 let socket: Socket | null = null
 let unListen: (() => void) | null = null
@@ -50,6 +86,8 @@ let unListen: (() => void) | null = null
 const userStore = UserInfoStore()
 const friendStore = FriendStore()
 const userInfo = userStore.getUserInfo()[0]
+
+const drawerVisible = ref(false)
 
 const selectId = ref()
 const sendContent = ref('')
@@ -62,33 +100,92 @@ const friendInfo = ref({
   nickname: "",
 })
 
-const msgList = ref<msgItem[]>([])
+const msgList = ref<MsgItem[]>([])
+
+const deleteFriend = () => {
+  const fId = friendStore.selectedId
+  const cId = friendStore.friendInfo.conversationId
+  deleteFriend(fId).then((res: any) => {
+    if (res.code == 200) {
+      deleteConversation(fId, cId).then((cRes: any) => {
+        if (cRes.code == 200) {
+          ElMessage.success('删除成功')
+          emit('refresh-friend-list')
+          friendStore.clearFriendInfo()
+          msgList.value = []
+        }
+      })
+    }
+  })
+}
+
+const clearMsg = () => {
+  clearMessage(friendStore.friendInfo.conversationId).then((res: any) => {
+    if (res.code == 200) {
+      ElMessage.success('删除成功')
+      msgList.value = []
+    }
+  })
+}
+
+const open = (type: string, content: string) => {
+  ElMessageBox.confirm(
+    `是否删除${content}?`,
+    {
+      confirmButtonText: '删除',
+      cancelButtonText: '取消',
+      type: 'warning',
+    }
+  )
+    .then(() => {
+      if (type == 'msg') {
+        clearMsg()
+      } else {
+        deleteFriend()
+      }
+    })
+    .catch(() => {
+      ElMessage({
+        type: 'info',
+        message: '取消',
+      })
+    })
+}
 
 const connectWebSocket = (conversationId: number) => {
-  socket = io('http://192.168.127.1:3000', {
+  socket = io('http://192.168.2.4:3000', {
     query: {
       userId: userInfo?.userId
     }
-  });
+  })
 
   socket.on('connect', () => {
     socket?.emit('join', { conversationId })
-  });
+  })
 
   socket.on('newMessage', (msg) => {
     if (msg.conversationId === conversationIdData.value) {
       msgList.value.push(msg)
+      emit('new-last-message', msg.content)
       nextTick(() => {
-        scrollRef.value.setScrollTop(scrollRef.value.wrapRef.scrollHeight)
+        if (scrollRef.value && scrollRef.value.wrapRef) {
+          scrollRef.value.setScrollTop(scrollRef.value.wrapRef.scrollHeight)
+        }
       })
     }
-  });
+  })
 
-  socket.on('conversationUpdate', () => {});
+  socket.on('conversationUpdate', () => {})
 }
 
-const sendMsg = async () => {
-  if (!sendContent.value) return
+const handleClickOutside = () => {
+  if (drawerVisible.value) {
+    drawerVisible.value = false
+  }
+}
+
+const sendMsg = () => {
+  if (!sendContent.value.trim()) return
   if (!socket) return
 
   if (userInfo) {
@@ -104,9 +201,8 @@ const sendMsg = async () => {
 
 const readMsg = () => {
   if (userInfo) {
-    let uId = userInfo.userId || 0
-    let cId = conversationIdData.value
-    readMessage(uId, cId)
+    const cId = conversationIdData.value
+    readMessage(cId)
   }
 }
 
@@ -137,7 +233,7 @@ const loadMessageList = async (cid: number) => {
 }
 
 watch(
-  [() => friendStore.friendInfo, () => friendStore.selectId],
+  [() => friendStore.friendInfo, () => friendStore.selectedId],
   async ([newFriendInfo, newSelectId]) => {
     if (!newFriendInfo || !newSelectId) return
 
@@ -169,6 +265,10 @@ onMounted(() => {
 
     loadMessageList(conversationIdData.value)
   }).then(ul => unListen = ul)
+
+  listen('delete-friend', () => {
+    msgList.value = []
+  })
 })
 
 onUnmounted(() => {
@@ -219,6 +319,11 @@ onUnmounted(() => {
   background: linear-gradient(to right, #d7f1ff, #f3f0ff);
 }
 
+.drawer-btn {
+  margin-top: 20px;
+  width: 100%;
+}
+
 .top {
   display: flex;
   justify-content: space-between;
@@ -253,16 +358,6 @@ onUnmounted(() => {
   flex-shrink: 0;
 }
 
-.msg.other {
-  flex-direction: row;
-  margin-right: auto;
-}
-
-.msg.me {
-  flex-direction: row-reverse;
-  margin-left: auto;
-}
-
 .avatar {
   width: 32px;
   height: 32px;
@@ -279,9 +374,19 @@ onUnmounted(() => {
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
+.msg.me {
+  margin-left: auto;
+  flex-direction: row-reverse;
+}
+
 .msg.me .bubble {
   background: #409eff;
   color: #fff;
+}
+
+.msg.other {
+  margin-right: auto;
+  justify-content: flex-start;
 }
 
 .send {

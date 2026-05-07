@@ -3,8 +3,8 @@ import { WindowConfigData } from "@/types/auth";
 export const indexWindowWidth = 834;
 export const indexWindowHeight = 608;
 
-export const homeConfig: WindowConfigData = {
-  label: "home",
+export const pendingConfig: WindowConfigData = {
+  label: "pending",
   title: "",
   width: indexWindowWidth,
   height: indexWindowHeight,
@@ -12,6 +12,6 @@ export const homeConfig: WindowConfigData = {
   y: 100,
   resizable: true,
   maximizable: true,
-  route: "/home",
-  maximize: true,
+  route: "/pending",
+  maximize: false,
 };

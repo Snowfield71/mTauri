@@ -72,7 +72,7 @@ import { ref} from 'vue'
 import { emit } from "@tauri-apps/api/event"
 import type { SearchListItem } from '@/types/friend'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { addFriend, searchFriend } from '@/api/friend'
+import { applyFriend, searchFriend } from '@/api/friend'
 import { UserInfoStore } from '@/store/user/user.store'
 import { createConversation } from '@/api/conversation'
 import { FriendStore } from '@/store/friend/friend.store'
@@ -140,14 +140,12 @@ const open = (item: SearchListItem, index: number) => {
 
 const handleAdd = (item: SearchListItem, index: number) => {
   let friendId = item.id
-  addFriend(userId.value, item.id).then((res: any) => {
+  applyFriend(userId.value, item.id).then((res: any) => {
     if (res.code == 200) {
       if (res.message == '添加成功') {
         ElMessage.success(res.message)
         searchList.value[index].isAdded = true
         handleCreatConversation(friendId)
-
-        emit('add-friend-success', { isAdd: true })
       } else {
         ElMessage.info(res.message)
       }
@@ -156,17 +154,17 @@ const handleAdd = (item: SearchListItem, index: number) => {
 }
 
 const handleCreatConversation = (friendId: number) => {
-  createConversation(userId.value, friendId)
+  createConversation(friendId)
 }
 
 const sendMsg = (id: number) => {
-  friendStore.setSelectId(id)
+  friendStore.setSelectedId(id)
   let info = friendStore.getFriendInfo(id)
   if (info) {
     friendStore.setFriendInfo(info)
   }
   emit("friend-info-update", {
-    selectId: id,
+    selectedId: id,
     friendInfo: info
   })
 }

@@ -9,7 +9,6 @@
 html, body {
   margin: 0;
   padding: 0;
-  width: calc(100% - 2px);
   height: 100%;
 }
 

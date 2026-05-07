@@ -66,6 +66,11 @@ const router = createRouter({
       path: "/add",
       component: () => import("../views/Home/add/index.vue"),
     },
+    {
+      name: "Pending",
+      path: "/pending",
+      component: () => import("../views/Home/pending/index.vue"),
+    },
   ],
 });
 

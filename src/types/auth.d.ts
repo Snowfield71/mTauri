@@ -29,7 +29,7 @@ type AccountData = {
   password: string;
 };
 
-type saveAccountData = {
+type SaveAccountData = {
   avatar: string;
   account: string;
 };
@@ -68,7 +68,7 @@ type WindowConfigData = {
   maximize?: boolean;
 };
 
-type findMethodsCardContentData = {
+type FindMethodsCardContentData = {
   name: string;
   title: string;
   description: string;
@@ -83,10 +83,10 @@ type PhoneNumberAndCode = {
 
 export type {
   UserInfoData,
-  findMethodsCardContentData,
+  FindMethodsCardContentData,
   LoginFormData,
   AccountData,
-  saveAccountData,
+  SaveAccountData,
   WindowConfigData,
   AreaCodeData,
   RegisterFormData,

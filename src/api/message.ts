@@ -8,14 +8,19 @@ export const sendMessage = (data: SendMessageData) => {
 export const getMessageList = (conversationId: number) => {
   return request.get("/message/list", {
     params: {
-      conversationId: conversationId,
+      conversationId,
     },
   });
 };
 
-export const readMessage = (userId: number, conversationId: number) => {
+export const readMessage = (conversationId: number) => {
   return request.post("/message/read", {
-    userId: userId,
-    conversationId: conversationId,
+    conversationId,
+  });
+};
+
+export const clearMessage = (conversationId: number) => {
+  return request.post("/message/clear", {
+    conversationId,
   });
 };
