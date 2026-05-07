@@ -38,9 +38,9 @@
               </el-icon>
               <template #dropdown>
                 <div class="custom-dropdown-menu">
-                  <div 
-                    v-for="(item, index) in savedAccounts" 
-                    :key="item.account" 
+                  <div
+                    v-for="(item, index) in savedAccounts"
+                    :key="item.account"
                     class="dropdown-item"
                   >
                     <img :src="item.avatar" class="dropdown-avatar" />
@@ -76,8 +76,8 @@
             </div>
           </template>
         </el-input>
-      <UserAgreement 
-          :agreementAccepted="agreementAccepted" 
+      <UserAgreement
+          :agreementAccepted="agreementAccepted"
           @click="agreementAccepted = toggleState(agreementAccepted)"
       />
     </el-form>
@@ -107,6 +107,7 @@ import { loginConfig } from './window.size'
 import { invoke } from '@tauri-apps/api/core'
 import { listen } from '@tauri-apps/api/event'
 import { toggleState } from '../../../util/index'
+
 import type { SaveAccountData } from '../../../types/auth'
 import { initWindowConfig } from '@/util/windowConfig'
 import type { UnlistenFn } from '@tauri-apps/api/event'
@@ -121,7 +122,7 @@ import UserAgreement from '../../../components/Auth/UserAgreement.vue'
 import { ElForm, ElPopover, ElMessage, ElDropdown, ElButton } from 'element-plus'
 
 const store = UserInfoStore()
-const isRegister = computed(() => store.isRegister) 
+const isRegister = computed(() => store.isRegister)
 
 watch(isRegister, (newValue, oldValue) => {
   if (newValue != oldValue) {
@@ -131,13 +132,10 @@ watch(isRegister, (newValue, oldValue) => {
 
 const unlisten = ref<UnlistenFn | null>(null)
 
-// 账号列表
 const savedAccounts = ref<SaveAccountData[]>([])
 
-// 默认头像
 const defaultAvatarSrc = ref<string>('http://192.168.2.4:3000/uploads/avatars/DefaultAvatar.png')
 
-// 登录表单数据
 const form = ref({
   account: '',
   password: ''
@@ -147,7 +145,6 @@ watch(savedAccounts, (newVal) => {
   form.value.account = newVal[0]?.account ?? ''
 }, { immediate: true })
 
-// 下拉菜单定位配置
 const accountDropdownOptions = {
   modifiers: [
     {
@@ -159,23 +156,16 @@ const accountDropdownOptions = {
   ],
 }
 
-// 是否同意协议
 let agreementAccepted = ref<boolean>(false)
 
-// 账号列表是否可见
 let accountDropdownVisible = ref<boolean>(true)
 
-// 选中账户头像下标
 let selectedAvatarIndex = ref<number>(0)
 
-// 登录表单引用
 const loginFormRef = ref<InstanceType<typeof ElForm> | null>(null)
-// 弹出框引用
 const moreOptionsPopover = ref<InstanceType<typeof ElPopover> | null>(null)
-// dropdown绑定
 const accountDropdownRef = ref<InstanceType<typeof ElDropdown> | null>(null)
 
-// 登录表单验证规则
 const loginValidationRules = {
   account: [
     { required: true, message: '请输入账号', trigger: 'change' }
@@ -186,7 +176,6 @@ const loginValidationRules = {
   ]
 }
 
-// 清除输入框数据
 const clearInputField = (type: 'account' | 'password') => {
   if (type === 'account') {
     form.value.account = ''
@@ -195,12 +184,11 @@ const clearInputField = (type: 'account' | 'password') => {
   }
 }
 
-// 提交登录数据
 const submit = async () => {
   if (!loginFormRef.value) return
-  
+
   await loginFormRef.value.validate()
-    
+
   if (!agreementAccepted.value) {
     ElMessage({
       message: '请阅读并同意服务协议',
@@ -232,8 +220,13 @@ const submit = async () => {
         setTimeout(() => {
           invoke('close_window').catch(err => console.error('Failed to close window:', err))
         }, 300)
+      }).catch((error: any) => {
+        ElMessage({
+          message: error || '该账号已登录',
+          type: 'warning'
+        })
       })
-      
+
       form.value.password = ''
     } else {
         ElMessage({
@@ -244,8 +237,7 @@ const submit = async () => {
     })
   }
 
-// 打开注册/忘记密码窗口
- const openAuthWindow = async (type: 'Register' | 'ForgetPwd') => {
+const openAuthWindow = async (type: 'Register' | 'ForgetPwd') => {
     try {
       if (type === 'Register') {
         await invoke('create_window', { config: registerConfig })
@@ -253,14 +245,13 @@ const submit = async () => {
       if (type === 'ForgetPwd') {
         await invoke('create_window', { config: forgetPwdConfig })
       }
-      
+
      moreOptionsPopover.value?.hide()
     } catch (error) {
       console.error('Window creation failed:', error)
     }
   }
 
-// 选择账号
 const selectSavedAccount = (item: SaveAccountData, index: number) => {
   form.value.account = item.account
   accountDropdownVisible.value = false
@@ -270,7 +261,6 @@ const selectSavedAccount = (item: SaveAccountData, index: number) => {
   accountDropdownRef.value?.handleClose()
 }
 
-// 从列表中移除账号
 const removeAccount = (index: number) => {
   store.deleteUserInfo(index)
 }
@@ -288,7 +278,6 @@ onMounted(async () => {
 
   unlisten.value = await listen<{ userInfo: UserInfoData }>('registration-completed', (event) => {
     store.setUserInfo(event.payload.userInfo)
-    // 重置注册状态
     store.setIsRegister(false)
 
     form.value.account = event.payload.userInfo.account
