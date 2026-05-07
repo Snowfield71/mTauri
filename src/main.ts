@@ -14,3 +14,7 @@ const app = createApp(App);
 app.use(pinia);
 app.use(router);
 app.mount("#app");
+
+document.addEventListener('contextmenu', (event) => {
+  event.preventDefault();
+});
