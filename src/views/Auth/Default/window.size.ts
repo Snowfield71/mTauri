@@ -8,4 +8,5 @@ export const defaultConfig: WindowConfigData = {
   resizable: false,
   maximizable: false,
   route: "/auth/default",
+  disableContextMenu: true,
 };

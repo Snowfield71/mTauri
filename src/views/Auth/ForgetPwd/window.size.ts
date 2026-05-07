@@ -11,4 +11,5 @@ export const forgetPwdConfig: WindowConfigData = {
   resizable: false,
   maximizable: false,
   route: "/auth/forgetPwd",
+  disableContextMenu: true,
 };

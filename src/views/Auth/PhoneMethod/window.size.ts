@@ -8,4 +8,5 @@ export const phoneMethodConfig: WindowConfigData = {
   resizable: false,
   maximizable: false,
   route: "/auth/phoneMethod",
+  disableContextMenu: true,
 };

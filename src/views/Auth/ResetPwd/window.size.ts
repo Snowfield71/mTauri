@@ -8,4 +8,5 @@ export const registerConfig: WindowConfigData = {
   resizable: false,
   maximizable: false,
   route: "/auth/resetPwd",
+  disableContextMenu: true,
 };
