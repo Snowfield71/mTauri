@@ -5,7 +5,7 @@ import FriendList from '@/components/Home/FriendList.vue'
 import ChatWindow from '@/components/Home/ChatWindow.vue'
 import { UserInfoStore } from '@/store/user/user.store'
 
-const store = UserInfoStore()
+const userStore = UserInfoStore()
 
 interface WindowUserData {
   token: string
@@ -18,9 +18,9 @@ const currentUser = ref<WindowUserData | null>(null)
 
 const cleanupOnClose = () => {
   try {
-    store.setToken('')
-    store.setWindowUserId('')
-    store.setUserInfo({ userId: 0, account: '', avatar: '', nickname: '' })
+    userStore.setToken('')
+    userStore.setWindowUserId('')
+    userStore.setUserInfo({ userId: 0, account: '', avatar: '', nickname: '' })
   } catch (error) {
     console.error('Cleanup failed:', error)
   }
@@ -36,9 +36,9 @@ onMounted(async () => {
       currentUser.value = parsedData
       
       if (currentUser.value) {
-        store.setToken(currentUser.value.token)
-        store.setWindowUserId(currentUser.value.userId)
-        store.setUserInfo({
+        userStore.setToken(currentUser.value.token)
+        userStore.setWindowUserId(currentUser.value.userId)
+        userStore.setUserInfo({
           userId: parseInt(currentUser.value.userId),
           account: currentUser.value.account,
           avatar: currentUser.value.avatar,

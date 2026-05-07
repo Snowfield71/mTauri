@@ -110,6 +110,7 @@ import { invoke } from '@tauri-apps/api/core'
 import { listen } from '@tauri-apps/api/event'
 import { toggleState } from '../../../util/index'
 import { baseURL } from '../../../util/request'
+import { FriendStore } from '@/store/friend/friend.store'
 import type { SaveAccountData } from '../../../types/auth'
 import { initWindowConfig } from '@/util/windowConfig'
 import type { UnlistenFn } from '@tauri-apps/api/event'
@@ -123,12 +124,13 @@ import { ArrowUp, ArrowDown, Close } from '@element-plus/icons-vue'
 import UserAgreement from '../../../components/Auth/UserAgreement.vue'
 import { ElForm, ElPopover, ElMessage, ElDropdown, ElButton } from 'element-plus'
 
-const store = UserInfoStore()
-const isRegister = computed(() => store.isRegister)
+const userStore = UserInfoStore()
+const friendStore = FriendStore()
+const isRegister = computed(() => userStore.isRegister)
 
 watch(isRegister, (newValue, oldValue) => {
   if (newValue != oldValue) {
-    store.setIsRegister(false)
+    userStore.setIsRegister(false)
   }
 })
 
@@ -208,8 +210,8 @@ const submit = async () => {
       const { code, ...userInfoData} = res.user
       const token = res.token
 
-      store.setUserInfo(userInfoData)
-      store.setToken(token)
+      userStore.setUserInfo(userInfoData)
+      userStore.setToken(token)
 
       const homeWindowConfig = createHomeConfig({
         token: token,
@@ -217,6 +219,8 @@ const submit = async () => {
         account: res.user.account,
         avatar: res.user.avatar
       })
+
+      friendStore.clearFriendInfo()
 
       invoke('create_window', { config: homeWindowConfig}).then(() => {
         setTimeout(() => {
@@ -269,14 +273,14 @@ const selectSavedAccount = (item: SaveAccountData, index: number) => {
 }
 
 const removeAccount = (index: number) => {
-  store.deleteUserInfo(index)
+  userStore.deleteUserInfo(index)
   savedAccounts.value.splice(index, 1)
   form.value.account = ''
 }
 
 onMounted(async () => {
   initWindowConfig(loginConfig)
-  let info = store.getUserInfo()
+  let info = userStore.getUserInfo()
 
   if (info && info.length > 0) {
     savedAccounts.value = info.map(item => ({
@@ -286,8 +290,8 @@ onMounted(async () => {
   }
 
   unlisten.value = await listen<{ userInfo: UserInfoData }>('registration-completed', (event) => {
-    store.setUserInfo(event.payload.userInfo)
-    store.setIsRegister(false)
+    userStore.setUserInfo(event.payload.userInfo)
+    userStore.setIsRegister(false)
 
     form.value.account = event.payload.userInfo.account
     savedAccounts.value[selectedAvatarIndex.value].avatar = event.payload.userInfo.avatar

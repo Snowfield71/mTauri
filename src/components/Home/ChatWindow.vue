@@ -1,5 +1,5 @@
 <template>
-  <div class="container" @click="handleClickOutside">
+  <div class="container" @click="handleClickOutside" v-if="friendInfo && friendInfo.nickname">
     <div class="top">
       <span>{{ friendInfo.nickname }}</span>
       <el-icon @click.stop="drawerVisible=true">
@@ -74,12 +74,13 @@ import { baseURL } from '@/util/request'
 import type { MsgItem } from "@/types/friend"
 import { io, Socket } from 'socket.io-client'
 import { emit, listen } from "@tauri-apps/api/event"
-import { MoreFilled } from "@element-plus/icons-vue"
+import { MoreFilled, MessageBox } from "@element-plus/icons-vue"
 import { deleteConversation } from "@/api/conversation"
 import { UserInfoStore } from "@/store/user/user.store"
 import { FriendStore } from "@/store/friend/friend.store"
 import { ref, watch, nextTick, onMounted, onUnmounted } from "vue"
 import { readMessage, getMessageList, clearMessage } from "@/api/message"
+import { ElMessage, ElMessageBox } from 'element-plus'
 
 let socket: Socket | null = null
 let unListen: (() => void) | null = null
@@ -236,7 +237,15 @@ const loadMessageList = async (cid: number) => {
 watch(
   [() => friendStore.friendInfo, () => friendStore.selectedId],
   async ([newFriendInfo, newSelectId]) => {
-    if (!newFriendInfo || !newSelectId) return
+    if (!newFriendInfo || !newSelectId) {
+      friendInfo.value = {
+        conversationId: 0,
+        avatar: "",
+        nickname: "",
+      }
+      msgList.value = []
+      return
+    }
 
     friendInfo.value = {
       conversationId: Number(newFriendInfo.conversationId) || 0,
@@ -254,14 +263,22 @@ watch(
 onMounted(() => {
   listen('friend-info-update', (event: any) => {
     const payload = event.payload
-    if (!payload) return
+    if (!payload || !payload.friendInfo) {
+      friendInfo.value = {
+        conversationId: 0,
+        avatar: "",
+        nickname: "",
+      }
+      msgList.value = []
+      return
+    }
 
     friendInfo.value = {
       conversationId: Number(payload.friendInfo?.conversationId) || 0,
       avatar: payload.friendInfo?.avatar || '',
       nickname: payload.friendInfo?.nickname || ''
     }
-    selectId.value = payload.selectId || 0
+    selectId.value = payload.selectedId || 0
     conversationIdData.value = friendInfo.value.conversationId
 
     loadMessageList(conversationIdData.value)

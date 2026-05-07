@@ -91,15 +91,15 @@ const handleSearch = () => {
   if (!keyword.value) return
   searchFriend(keyword.value).then((res: any) => {
     if (res.code === 200) {
-      let currentUserId = userStore.userInfo[0].userId
+      let currentUserId = Number(userStore.userInfo[0].userId)
       let friendList = friendStore.friendList
       
-      const friendIds = friendList.map((friend: any) => friend.targetUserId)
+      const friendIds = friendList.map((friend: any) => Number(friend.targetUserId))
       
       const searchResults = res.data
-        .filter((item: SearchListItem) => item.id !== currentUserId)
+        .filter((item: SearchListItem) => Number(item.id) !== currentUserId)
         .map((item: SearchListItem) => {
-          const isFriend = friendIds.includes(item.id)
+          const isFriend = friendIds.includes(Number(item.id))
           return {
             ...item,
             isAdded: isFriend
@@ -234,27 +234,6 @@ const sendMsg = (id: number) => {
   width: 42px;
   height: 42px;
   border-radius: 50%;
-}
-.popover {
-  display: flex;
-}
-.popover-avatar {
-  width: 64px;
-  height: 64px;
-  border-radius: 50%;
-}
-.popover-info {
-  margin-left: 20px;
-  display: flex;
-  text-align: center;
-  flex-direction: column;
-  justify-content: center;
-  gap: 10px;
-  height: 64px;
-}
-.popover-btn {
-  width: 100%;
-  margin-top: 5px;
 }
 </style>
 

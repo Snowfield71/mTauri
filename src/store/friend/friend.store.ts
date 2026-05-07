@@ -36,12 +36,7 @@ export const FriendStore = defineStore("friendList", {
       this.friendList.splice(index, 1);
     },
     clearFriendInfo() {
-      this.friendInfo = {
-        conversationId: 0,
-        nickname: "",
-        avatar: "",
-        account: "",
-      };
+      this.friendInfo = {} as FriendInfo;
     },
   },
   persist: true,
