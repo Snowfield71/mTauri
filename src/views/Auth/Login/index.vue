@@ -228,8 +228,11 @@ const submit = async () => {
         avatar: res.user.avatar
       })
 
-      invoke('create_window', { config: homeWindowConfig})
-      invoke('close_window')
+      invoke('create_window', { config: homeWindowConfig}).then(() => {
+        setTimeout(() => {
+          invoke('close_window').catch(err => console.error('Failed to close window:', err))
+        }, 300)
+      })
       
       form.value.password = ''
     } else {
