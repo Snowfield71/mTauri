@@ -74,7 +74,7 @@ import { baseURL } from '@/util/request'
 import type { MsgItem } from "@/types/friend"
 import { io, Socket } from 'socket.io-client'
 import { emit, listen } from "@tauri-apps/api/event"
-import { MoreFilled, MessageBox } from "@element-plus/icons-vue"
+import { MoreFilled } from "@element-plus/icons-vue"
 import { deleteConversation } from "@/api/conversation"
 import { UserInfoStore } from "@/store/user/user.store"
 import { FriendStore } from "@/store/friend/friend.store"
