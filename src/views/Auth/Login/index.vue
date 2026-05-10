@@ -209,6 +209,8 @@ const submit = async () => {
 
       const { code, ...userInfoData} = res.user
       const token = res.token
+      
+      friendStore.clearFriendInfo()
 
       userStore.setUserInfo(userInfoData)
       userStore.setToken(token)
@@ -219,8 +221,6 @@ const submit = async () => {
         account: res.user.account,
         avatar: res.user.avatar
       })
-
-      friendStore.clearFriendInfo()
 
       invoke('create_window', { config: homeWindowConfig}).then(() => {
         setTimeout(() => {

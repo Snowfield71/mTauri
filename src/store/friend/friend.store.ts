@@ -37,6 +37,19 @@ export const FriendStore = defineStore("friendList", {
     },
     clearFriendInfo() {
       this.friendInfo = {} as FriendInfo;
+      this.selectedId = 0;
+      
+      const currentData = localStorage.getItem('friendList');
+      if (currentData) {
+        try {
+          const parsed = JSON.parse(currentData);
+          parsed.friendInfo = {};
+          parsed.selectedId = 0;
+          localStorage.setItem('friendList', JSON.stringify(parsed));
+        } catch (e) {
+          console.error('Failed to update localStorage:', e);
+        }
+      }
     },
   },
   persist: true,
