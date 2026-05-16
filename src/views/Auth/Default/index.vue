@@ -74,11 +74,13 @@ import { toggleState } from '../../../util/index.ts'
 import { UserInfoData } from '../../../types/auth.ts'
 import { initWindowConfig } from '@/util/windowConfig.ts'
 import { UserInfoStore } from '@/store/user/user.store.ts'
+import { FriendStore } from '@/store/friend/friend.store.ts'
 import { CircleCloseFilled } from '@element-plus/icons-vue'
 import { baseURL } from "@/util/request.ts"
 import { homeConfig } from '../../Home/Home/window.size.ts'
 
 const store = UserInfoStore()
+const friendStore = FriendStore()
 const router = useRouter()
 
 // 默认头像地址
@@ -145,6 +147,9 @@ const submit = async () => {
       })
 
       const { token, user} = res
+
+      // 先清除上次的聊天界面信息
+      friendStore.clearFriendInfo()
 
       store.setUserInfo(user)
       store.setToken(token)

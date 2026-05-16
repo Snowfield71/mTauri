@@ -15,6 +15,6 @@ app.use(pinia);
 app.use(router);
 app.mount("#app");
 
-document.addEventListener('contextmenu', (event) => {
+document.addEventListener("contextmenu", (event) => {
   event.preventDefault();
 });
