@@ -204,16 +204,12 @@ const handleCreatConversation = (userId: number, friendId: number) => {
   createConversation(userId, friendId)
 }
 
-const sendMsg = async (id: number) => {
-  let friendInfo  = friendStore.friendList.find(f => f.targetUserId === id)
-  
-  if (friendInfo) {
-    friendStore.setSelectedId(id)
-    friendStore.setFriendInfo(friendInfo)
-
+const sendMsg = (id: number) => {  
+  const item = friendStore.friendList.find(item => item.targetUserId === id)
+  if (item) {
     emit("friend-info-update", {
       selectedId: id,
-      friendInfo: friendInfo
+      friendInfo: item
     })
   }
 }

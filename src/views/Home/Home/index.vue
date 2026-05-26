@@ -25,6 +25,7 @@ const cleanupOnClose = () => {
 }
 
 onMounted(async () => {
+  // 从 hash 中解析查询参数
   const hash = window.location.hash
   const queryIndex = hash.indexOf('?')
   const queryString = queryIndex !== -1 ? hash.substring(queryIndex + 1) : ''

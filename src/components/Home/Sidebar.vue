@@ -170,7 +170,7 @@ const handleUpdate = async () => {
     if (userInfo.value) {
       formData.value.userId = userInfo.value.userId || 0
       formData.value.nickname = userInfo.value.nickname || ''
-      formData.value.phoneNumber = userInfo.value.phoneNumber || ''
+      formData.value.phoneNumber = userInfo.value.phoneNumber!
       previewUrl.value = userInfo.value.avatar || ''
     }
   }

@@ -134,6 +134,10 @@ const connectWebSocket = () => {
   socket.on('pendingApplyUpdate', () => {
     getPendingLists()
   })
+
+  socket.on('conversationListUpdate', () => {
+    getFriendList()
+  })
 }
 
 const search = () => {
@@ -379,6 +383,7 @@ onUnmounted(() => {
   if (socket) {
     socket.off('friendApplyReceived')
     socket.off('pendingApplyUpdate')
+    socket.off('conversationListUpdate')
     socket.disconnect()
     socket = null
   }
