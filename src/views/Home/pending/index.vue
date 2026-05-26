@@ -17,14 +17,14 @@
             <template #default>
               <div class="default">
                 <span @click="agree(item.id, index)">同意</span>
-                <el-icon v-if="!isSelect" @click="toggle">
+                <el-icon v-if="!expandedItems.has(index)" @click="toggle(index)">
                   <ArrowDown />
                 </el-icon>
-                <el-icon v-if="isSelect" @click="toggle">
+                <el-icon v-if="expandedItems.has(index)" @click="toggle(index)">
                   <ArrowUp />
                 </el-icon>
                 <div 
-                  v-if="isSelect" 
+                  v-if="expandedItems.has(index)" 
                   class="reject" 
                   @click="reject(item.id, index)">
                   <span>拒绝</span>
@@ -45,16 +45,31 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { PendingListItem } from '@/types/friend'
 import { emit, listen } from "@tauri-apps/api/event"
 import { ArrowDown, ArrowUp, Bell } from '@element-plus/icons-vue'
 import { getPendingFriendList, agreeFriendRequest, rejectFriendRequest } from '@/api/friend'
+import { UserInfoStore } from '@/store/user/user.store'
+import { ElMessage } from 'element-plus'
+
+interface WindowUserData {
+  token: string
+  userId: string
+  account: string
+  avatar: string
+}
+
+const userStore = UserInfoStore()
+const userInfo = computed(() => userStore.getUserInfo()[0])
 
 const pendingList = ref<PendingListItem[]>([])
-const isSelect = ref(false)
+
+const expandedItems = ref<Set<number>>(new Set())
 
 const getPendingLists = () => {
+  if (!userInfo.value) return
+  
   getPendingFriendList().then((res: any) => {
     if (res.code == 200) {
       pendingList.value = res.data
@@ -86,14 +101,52 @@ const reject = (friendId: number, index: number) => {
   })
 }
 
-const toggle = () => {
-  isSelect.value = !isSelect.value
+const toggle = (index: number) => {
+  if (expandedItems.value.has(index)) {
+    expandedItems.value.delete(index)
+  } else {
+    expandedItems.value.add(index)
+  }
 }
 
 onMounted(() => {
-  getPendingLists()
+  const hash = window.location.hash
+  const queryIndex = hash.indexOf('?')
+  const queryString = queryIndex !== -1 ? hash.substring(queryIndex + 1) : ''
+  const urlParams = new URLSearchParams(queryString)
+  
+  const userDataStr = urlParams.get('userData')
+  
+  if (userDataStr) {
+    try {
+      const parsedData = JSON.parse(decodeURIComponent(userDataStr)) as WindowUserData
+      
+      if (parsedData) {
+        userStore.setToken(parsedData.token)
+        userStore.setWindowUserId(parsedData.userId)
+        userStore.setUserInfo({
+          userId: parseInt(parsedData.userId),
+          account: parsedData.account,
+          avatar: parsedData.avatar,
+          nickname: parsedData.account
+        })
+        
+        getPendingLists()
+      }
+    } catch (e) {
+      console.error('Failed to parse user data:', e)
+    }
+  }
   
   listen('refresh-pending-list', () => {
+    getPendingLists()
+  })
+  
+  listen('friendAgreed', () => {
+    getPendingLists()
+  })
+  
+  listen('pendingApplyUpdate', () => {
     getPendingLists()
   })
 })
@@ -171,8 +224,8 @@ onMounted(() => {
 
 .reject {
   position: absolute;
-  right: -40px;
-  bottom: -40px;
+  right: -35px;
+  bottom: -35px;
   padding: 10px;
   border: 1px solid #dcdfe6;
   border-radius: 4px;

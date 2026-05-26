@@ -15,3 +15,11 @@ export const addConfig: WindowConfigData = {
   route: "/add",
   maximize: false,
 };
+
+export const createAddConfig = (userData: { token: string; userId: string; account: string; avatar: string }): WindowConfigData => {
+  return {
+    ...addConfig,
+    label: `add`,
+    route: `/add?userData=${encodeURIComponent(JSON.stringify(userData))}`
+  }
+};

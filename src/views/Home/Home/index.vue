@@ -18,16 +18,18 @@ const currentUser = ref<WindowUserData | null>(null)
 
 const cleanupOnClose = () => {
   try {
-    userStore.setToken('')
-    userStore.setWindowUserId('')
-    userStore.setUserInfo({ userId: 0, account: '', avatar: '', nickname: '' })
+    userStore.clearAll()
   } catch (error) {
     console.error('Cleanup failed:', error)
   }
 }
 
 onMounted(async () => {
-  const urlParams = new URLSearchParams(window.location.search)
+  const hash = window.location.hash
+  const queryIndex = hash.indexOf('?')
+  const queryString = queryIndex !== -1 ? hash.substring(queryIndex + 1) : ''
+  const urlParams = new URLSearchParams(queryString)
+  
   const userDataStr = urlParams.get('userData')
   
   if (userDataStr) {

@@ -73,7 +73,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { invoke } from '@tauri-apps/api/core'
 import { ElMessage } from 'element-plus'
 import { uploadUserProfile } from '@/api/auth'
@@ -86,7 +86,7 @@ const emit = defineEmits(['user-update'])
 
 const userStore = UserInfoStore()
 
-const userInfo = ref()
+const userInfo = computed(() => userStore.getUserInfo()[0])
 const dialogFormVisible = ref(false)
 const previewUrl = ref('')
 
@@ -109,6 +109,16 @@ const popperOptions = {
     { name: 'computeStyles', options: { adaptive: false } },
   ],
 }
+
+// 监听 userInfo 变化，更新表单数据
+watch(userInfo, (newUser) => {
+  if (newUser) {
+    formData.value.userId = newUser.userId || 0
+    formData.value.nickname = newUser.nickname || ''
+    formData.value.phoneNumber = newUser.phoneNumber || ''
+    previewUrl.value = newUser.avatar || ''
+  }
+}, { immediate: true })
 
 const beforeUpload = (file: File) => {
   const isImage = ['image/jpeg', 'image/png', 'image/gif'].includes(file.type)
@@ -141,7 +151,7 @@ const customUpload = async (options: any) => {
 const handleUpdate = async () => {
   dialogFormVisible.value = false
 
-  if (!formData.value.file && userInfo.value.avatar) {
+  if (!formData.value.file && userInfo.value?.avatar) {
     const response = await fetch(userInfo.value.avatar)
     const blob = await response.blob()
     const fileName = userInfo.value.avatar.split('/').pop() || 'avatar.jpg'
@@ -154,15 +164,15 @@ const handleUpdate = async () => {
     ElMessage.success('修改成功')
 
     userStore.setUserInfo(res.data)
-    userInfo.value = userStore.getUserInfo()[0]
-    emit('user-update', userInfo.value)
+    emit('user-update', userStore.getUserInfo()[0])
   } else {
     ElMessage.error(res.message || '修改失败')
-
-    formData.value.userId = userInfo.value.userId
-    formData.value.nickname = userInfo.value.nickname
-    formData.value.phoneNumber = userInfo.value.phoneNumber
-    previewUrl.value = userInfo.value.avatar
+    if (userInfo.value) {
+      formData.value.userId = userInfo.value.userId || 0
+      formData.value.nickname = userInfo.value.nickname || ''
+      formData.value.phoneNumber = userInfo.value.phoneNumber || ''
+      previewUrl.value = userInfo.value.avatar || ''
+    }
   }
 }
 
@@ -174,18 +184,6 @@ const closeWindow = async() => {
     console.error('操作失败:', err)
   }
 }
-
-onMounted(async () => {
-  const userList = userStore.getUserInfo()
-  const user = userList?.[0]
-  if (user) {
-    userInfo.value = user
-    formData.value.userId = user.userId || 0
-    formData.value.nickname = user.nickname || ''
-    formData.value.phoneNumber = user.phoneNumber || ''
-    previewUrl.value = user.avatar
-  }
-})
 </script>
 
 <style scoped>

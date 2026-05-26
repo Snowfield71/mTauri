@@ -5,22 +5,25 @@ export const sendMessage = (data: SendMessageData) => {
   return request.post("/message/send", data);
 };
 
-export const getMessageList = (conversationId: number) => {
+export const getMessageList = (conversationId: number, userId: number) => {
   return request.get("/message/list", {
     params: {
-      conversationId,
+      conversationId: conversationId,
+      userId: userId,
     },
   });
 };
 
-export const readMessage = (conversationId: number) => {
+export const readMessage = (userId: number, conversationId: number) => {
   return request.post("/message/read", {
-    conversationId,
+    userId: userId,
+    conversationId: conversationId,
   });
 };
 
-export const clearMessage = (conversationId: number) => {
+export const clearMessage = (userId: number, conversationId: number) => {
   return request.post("/message/clear", {
-    conversationId,
+    userId: userId,
+    conversationId: conversationId,
   });
 };

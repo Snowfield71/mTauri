@@ -25,7 +25,6 @@ declare module 'vue' {
     ElSelect: typeof import('element-plus/es')['ElSelect']
     ElTag: typeof import('element-plus/es')['ElTag']
     ElUpload: typeof import('element-plus/es')['ElUpload']
-    FormInput: typeof import('./components/Auth/FormInput.vue')['default']
     FriendList: typeof import('./components/Home/FriendList.vue')['default']
     PhoneVerificationForm: typeof import('./components/Auth/PhoneVerificationForm.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']

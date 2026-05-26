@@ -4,10 +4,10 @@ export const indexWindowWidth = 834;
 export const indexWindowHeight = 608;
 
 export const createHomeConfig = (userInfo?: { token: string; userId: string; account: string; avatar: string }): WindowConfigData => {
-  const userDataStr = userInfo ? encodeURIComponent(JSON.stringify(userInfo)) : undefined
+  const userDataStr = userInfo ? encodeURIComponent(JSON.stringify(userInfo)) : undefined;
   
   return {
-    label: `home-${userInfo?.userId || Math.random().toString(36).substr(2, 9)}`,
+    label: "home",
     title: "",
     width: indexWindowWidth,
     height: indexWindowHeight,

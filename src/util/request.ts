@@ -1,7 +1,7 @@
 import axios from "axios";
 import { UserInfoStore } from "@/store/user/user.store";
 
-export const baseURL = "http://175.178.179.146:3000";
+export const baseURL = "http://175.178.179.146:3000/";
 
 const request = axios.create({
   baseURL: baseURL,

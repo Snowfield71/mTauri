@@ -1,28 +1,25 @@
 import { defineStore } from "pinia";
-import type { FriendInfo } from "./friend.type";
+import type { friendInfo } from "./friend.type";
 import type { FriendListItem } from "@/types/friend";
 
 export const FriendStore = defineStore("friendList", {
   state: () => ({
     friendList: [] as FriendListItem[],
-    friendInfo: {} as FriendInfo,
+    friendInfo: {} as friendInfo,
     selectedId: 0,
   }),
   actions: {
     setSelectedId(id: number) {
       this.selectedId = id;
     },
-    setFriendInfo(info: FriendInfo) {
+    setFriendInfo(info: friendInfo) {
       this.friendInfo = info;
     },
     setFriendList(items: FriendListItem[]) {
       this.friendList = items;
     },
     getFriendInfo(id: number) {
-      const friendItem = this.friendList.find(
-        (item) => item.targetUserId === id,
-      );
-      return friendItem;
+      return this.friendList.find((item) => item.targetUserId === id);
     },
     resetFriendListUnreadCount(id: number) {
       const friendItem = this.friendList.find(
@@ -36,21 +33,8 @@ export const FriendStore = defineStore("friendList", {
       this.friendList.splice(index, 1);
     },
     clearFriendInfo() {
-      this.friendInfo = {} as FriendInfo;
+      this.friendInfo = {} as friendInfo;
       this.selectedId = 0;
-      
-      const currentData = localStorage.getItem('friendList');
-      if (currentData) {
-        try {
-          const parsed = JSON.parse(currentData);
-          parsed.friendInfo = {};
-          parsed.selectedId = 0;
-          localStorage.setItem('friendList', JSON.stringify(parsed));
-        } catch (e) {
-          console.error('Failed to update localStorage:', e);
-        }
-      }
     },
   },
-  persist: true,
 });

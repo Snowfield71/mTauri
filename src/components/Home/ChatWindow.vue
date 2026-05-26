@@ -52,7 +52,8 @@
         v-model="sendContent"
         type="textarea" 
         :rows="4"
-        placeholder="请输入内容，按 Enter 发送"
+        :placeholder="canSend ? '请输入内容，按 Enter 发送' : '对方已将你删除，无法发送消息'"
+        :disabled="!canSend"
         @keydown.enter.exact.prevent="sendMsg"
         @keydown.ctrl.enter="(e) => {
           sendContent += '\n'
@@ -62,7 +63,7 @@
       <el-button 
         class="send-btn" 
         type="primary"
-        :disabled="!(sendContent.trim().length > 0)"
+        :disabled="!(sendContent.trim().length > 0) || !canSend"
         @click="sendMsg">发送</el-button>
     </div>
   </div>
@@ -75,10 +76,9 @@ import type { MsgItem } from "@/types/friend"
 import { io, Socket } from 'socket.io-client'
 import { emit, listen } from "@tauri-apps/api/event"
 import { MoreFilled } from "@element-plus/icons-vue"
-import { deleteConversation } from "@/api/conversation"
 import { UserInfoStore } from "@/store/user/user.store"
 import { FriendStore } from "@/store/friend/friend.store"
-import { ref, watch, nextTick, onMounted, onUnmounted } from "vue"
+import { ref, watch, nextTick, onMounted, onUnmounted, computed } from "vue"
 import { readMessage, getMessageList, clearMessage } from "@/api/message"
 import { ElMessage, ElMessageBox } from 'element-plus'
 
@@ -87,7 +87,6 @@ let unListen: (() => void) | null = null
 
 const userStore = UserInfoStore()
 const friendStore = FriendStore()
-const userInfo = userStore.getUserInfo()[0]
 
 const drawerVisible = ref(false)
 
@@ -96,33 +95,44 @@ const sendContent = ref('')
 const scrollRef = ref()
 const conversationIdData = ref(0)
 
-const friendInfo = ref({
-  conversationId: 0,
-  avatar: "",
-  nickname: "",
-})
+const userInfo = computed(() => userStore.getUserInfo()[0])
+
+const friendInfo = computed(() => friendStore.friendInfo)
+
+const isBlockedByFriend = ref(false)
+
+const canSend = computed(() => !isBlockedByFriend.value && friendStore.friendInfo.canSend !== false)
 
 const msgList = ref<MsgItem[]>([])
 
 const handleDeleteFriend = () => {
   const fId = friendStore.selectedId
-  const cId = friendStore.friendInfo.conversationId
   apiDeleteFriend(fId).then((res: any) => {
     if (res.code == 200) {
-      deleteConversation(fId, cId).then((cRes: any) => {
-        if (cRes.code == 200) {
-          ElMessage.success('删除成功')
-          emit('refresh-friend-list')
-          friendStore.clearFriendInfo()
-          msgList.value = []
-        }
-      })
+      ElMessage.success('删除成功')
+      emit('refresh-friend-list')
+      friendStore.clearFriendInfo()
+      msgList.value = []
+      
+      if (socket) {
+        socket.off('connect')
+        socket.off('newMessage')
+        socket.off('conversationUpdate')
+        socket.disconnect()
+        socket = null
+      }
     }
   })
 }
 
 const clearMsg = () => {
-  clearMessage(friendStore.friendInfo.conversationId).then((res: any) => {
+  const currentUser = userInfo.value
+  if (!currentUser) return
+  
+  const cId = friendStore.friendInfo.conversationId
+  if (!cId) return
+  
+  clearMessage(currentUser.userId || 0, cId).then((res: any) => {
     if (res.code == 200) {
       ElMessage.success('删除成功')
       msgList.value = []
@@ -155,14 +165,25 @@ const open = (type: string, content: string) => {
 }
 
 const connectWebSocket = (conversationId: number) => {
+  const currentUser = userInfo.value
+  if (!currentUser) {
+    console.warn('用户信息不存在，无法连接 WebSocket')
+    return
+  }
+  
   socket = io(baseURL, {
     query: {
-      userId: userInfo?.userId
+      userId: currentUser.userId
     }
   })
 
   socket.on('connect', () => {
+    console.log('WebSocket 已连接')
     socket?.emit('join', { conversationId })
+  })
+
+  socket.on('disconnect', () => {
+    console.log('WebSocket 已断开')
   })
 
   socket.on('newMessage', (msg) => {
@@ -187,31 +208,55 @@ const handleClickOutside = () => {
 }
 
 const sendMsg = () => {
-  if (!sendContent.value.trim()) return
-  if (!socket) return
-
-  if (userInfo) {
-    const msg: MsgItem = {
-      conversationId: friendInfo.value.conversationId,
-      senderId: userInfo.userId || 0,
-      content: sendContent.value
-    }
-    socket.emit("sendMessage", msg)
-    sendContent.value = ""
+  if (!canSend.value) {
+    ElMessage.warning('对方已将你删除，无法发送消息')
+    return
   }
+  
+  if (!sendContent.value.trim()) return
+  
+  const currentUser = userInfo.value
+  if (!currentUser) {
+    ElMessage.warning('用户信息不存在')
+    return
+  }
+  
+  if (!socket) {
+    ElMessage.warning('连接已断开，请重新选择好友')
+    return
+  }
+  
+  if (!friendInfo.value.conversationId) {
+    ElMessage.warning('请先选择好友')
+    return
+  }
+
+  const msg: MsgItem = {
+    conversationId: friendInfo.value.conversationId,
+    senderId: currentUser.userId || 0,
+    content: sendContent.value
+  }
+  
+  socket.emit("sendMessage", msg)
+  
+  sendContent.value = ""
 }
 
 const readMsg = () => {
-  if (userInfo) {
+  const currentUser = userInfo.value
+  if (currentUser) {
     const cId = conversationIdData.value
-    readMessage(cId)
+    readMessage(currentUser.userId || 0, cId)
   }
 }
 
 const loadMessageList = async (cid: number) => {
   if (!cid) return
+  const currentUser = userInfo.value
+  if (!currentUser) return
+  
   try {
-    getMessageList(cid).then((res: any) => {
+    getMessageList(cid, currentUser.userId || 0).then((res: any) => {
       if (res.code == 200) {
         msgList.value = res.messageList
       }
@@ -238,22 +283,14 @@ watch(
   [() => friendStore.friendInfo, () => friendStore.selectedId],
   async ([newFriendInfo, newSelectId]) => {
     if (!newFriendInfo || !newSelectId) {
-      friendInfo.value = {
-        conversationId: 0,
-        avatar: "",
-        nickname: "",
-      }
       msgList.value = []
       return
     }
 
-    friendInfo.value = {
-      conversationId: Number(newFriendInfo.conversationId) || 0,
-      avatar: newFriendInfo.avatar || '',
-      nickname: newFriendInfo.nickname || ''
-    }
+    isBlockedByFriend.value = false
+    
     selectId.value = newSelectId
-    conversationIdData.value = friendInfo.value.conversationId
+    conversationIdData.value = newFriendInfo.conversationId
 
     await loadMessageList(conversationIdData.value)
   },
@@ -264,28 +301,31 @@ onMounted(() => {
   listen('friend-info-update', (event: any) => {
     const payload = event.payload
     if (!payload || !payload.friendInfo) {
-      friendInfo.value = {
-        conversationId: 0,
-        avatar: "",
-        nickname: "",
-      }
       msgList.value = []
       return
     }
-
-    friendInfo.value = {
-      conversationId: Number(payload.friendInfo?.conversationId) || 0,
-      avatar: payload.friendInfo?.avatar || '',
-      nickname: payload.friendInfo?.nickname || ''
-    }
-    selectId.value = payload.selectedId || 0
-    conversationIdData.value = friendInfo.value.conversationId
-
-    loadMessageList(conversationIdData.value)
+    friendStore.setSelectedId(payload.selectedId || 0)
+    friendStore.setFriendInfo(payload.friendInfo)
   }).then(ul => unListen = ul)
 
   listen('delete-friend', () => {
     msgList.value = []
+  })
+
+  listen('conversationListUpdate', () => {})
+  
+  listen('friendRemoved', (event: any) => {
+    const payload = event.payload
+    if (!payload || !payload.fromUserId) {
+      return
+    }
+    
+    const currentFriendId = friendStore.friendInfo.targetUserId
+    
+    if (currentFriendId && payload.fromUserId === currentFriendId) {
+      isBlockedByFriend.value = true
+      ElMessage.warning('对方已将你删除，无法发送消息')
+    }
   })
 })
 

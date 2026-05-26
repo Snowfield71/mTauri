@@ -7,6 +7,7 @@ export type FriendListItem = {
   lastTime: string;
   unreadCount: number;
   account: string;
+  canSend?: boolean;
 };
 
 export type MsgItem = {
@@ -18,7 +19,7 @@ export type MsgItem = {
   createdAt?: string;
 };
 
-export type FriendListResponse = { data: FriendListItem[] };
+export type FriendListResponse = { data; data: friendList[] };
 
 export type SearchListItem = {
   id: number;

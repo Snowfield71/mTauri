@@ -35,6 +35,7 @@
           :key="item.conversationId || index"
           class="content-list"
           @click="handleItemClick(item, item.targetUserId)"
+          @contextmenu="open(item)"
         >
           <img class="avatar" :src="item.avatar" />
           <div class="content">
@@ -63,7 +64,7 @@
           :key="item.conversationId || index"
           class="content-list"
           @click="handleItemClick(item, item.targetUserId)"
-          @contextmenu="open(item, index)"
+          @contextmenu="open(item)"
         >
           <img class="avatar" :src="item.avatar" />
           <div class="content">
@@ -92,22 +93,21 @@ import { baseURL } from '@/util/request'
 import { deleteFriend as apiDeleteFriend, getPendingFriendList } from '@/api/friend'
 import { io, Socket } from 'socket.io-client'
 import { invoke } from '@tauri-apps/api/core'
-import { ref, onMounted, onUnmounted, computed } from 'vue'
-import { deleteConversation } from '@/api/conversation'
+import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import { emit, listen } from "@tauri-apps/api/event"
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getConversationList } from '@/api/conversation'
 import type { FriendListItem } from '../../types/friend'
-import { addConfig } from '@/views/Home/add/window.size'
+import { addConfig, createAddConfig } from '@/views/Home/add/window.size'
 import { FriendStore } from '@/store/friend/friend.store'
 import { UserInfoStore } from '../../store/user/user.store'
-import { pendingConfig } from '@/views/Home/pending/window.size'
+import { pendingConfig, createPendingConfig } from '@/views/Home/pending/window.size'
 import { Search, Plus, Close, ArrowRight } from '@element-plus/icons-vue'
 
 const userStore = UserInfoStore()
 const friendStore = FriendStore()
 
-const userInfo = ref()
+const userInfo = computed(() => userStore.getUserInfo()[0])
 const keyword = ref('')
 const pendingCount = ref(0)
 const isSearch = ref(false)
@@ -119,6 +119,7 @@ const searchResult = ref<FriendListItem[]>([])
 let socket: Socket | null = null
 
 const connectWebSocket = () => {
+  if (!userInfo.value) return
   socket = io(baseURL, {
     query: {
       userId: userInfo.value.userId
@@ -128,10 +129,6 @@ const connectWebSocket = () => {
   socket.on('friendApplyReceived', () => {
     emit('refresh-pending-list')
     getPendingLists()
-  })
-
-  socket.on('friendListUpdate', () => {
-    getFriendList()
   })
 
   socket.on('pendingApplyUpdate', () => {
@@ -157,27 +154,34 @@ const search = () => {
   })
 }
 
-const deleteFriend = (friendListItem: FriendListItem, index: number) => {
+const deleteFriend = (friendListItem: FriendListItem) => {
   const fId = friendListItem.targetUserId
-  const cId = friendListItem.conversationId
   
   apiDeleteFriend(fId).then((res: any) => {
     if (res.code == 200) {
-      deleteConversation(fId, cId).then((cRes: any) => {
-        if (cRes.code == 200) {
-          ElMessage.success('删除成功')
-          friendStore.deleteFriendByIndex(index)
-          getFriendList()
-
-          friendStore.clearFriendInfo()
-          emit('delete-friend')
-        }
-      })
+      ElMessage.success('删除成功')
+      
+      const targetIndex = friendStore.friendList.findIndex(
+        (item: FriendListItem) => item.targetUserId === fId
+      )
+      
+      if (targetIndex !== -1) {
+        friendStore.deleteFriendByIndex(targetIndex)
+      }
+      
+      if (isSearch.value) {
+        searchResult.value = searchResult.value.filter(
+          (item: FriendListItem) => item.targetUserId !== fId
+        )
+      }
+      
+      friendStore.clearFriendInfo()
+      emit('delete-friend')
     }
   })
 }
 
-const open = (item: FriendListItem, index: number) => {
+const open = (item: FriendListItem) => {
   let nickname = item.nickname
   ElMessageBox.confirm(
     `是否删除好友${nickname}?`,
@@ -188,7 +192,7 @@ const open = (item: FriendListItem, index: number) => {
     }
   )
     .then(() => {
-      deleteFriend(item, index)
+      deleteFriend(item)
     })
     .catch(() => {
       ElMessage({
@@ -232,7 +236,7 @@ const getPendingLists = () => {
 
 const getFriendList = async () => {
   try {
-    getConversationList().then((res: any) => {
+    getConversationList(userInfo.value.userId || 0).then((res: any) => {
       if (res.code === 200) {
         res.data.forEach((item: FriendListItem) => {
           if (item.lastTime) {
@@ -253,10 +257,36 @@ const getFriendList = async () => {
 const createWindow = async(type: string) => {
   try {
     if (type == 'add') {
-      await invoke('create_window', { config: addConfig })
+      const userList = userStore.getUserInfo()
+      const user = userList?.[0]
+      
+      if (user) {
+        const addWindowConfig = createAddConfig({
+          token: userStore.getToken(),
+          userId: user.userId!.toString(),
+          account: user.account,
+          avatar: user.avatar
+        })
+        await invoke('create_window', { config: addWindowConfig })
+      } else {
+        await invoke('create_window', { config: addConfig })
+      }
     }
     else if (type == 'pending') {
-      await invoke('create_window', { config: pendingConfig })
+      const userList = userStore.getUserInfo()
+      const user = userList?.[0]
+      
+      if (user) {
+        const pendingWindowConfig = createPendingConfig({
+          token: userStore.getToken(),
+          userId: user.userId!.toString(),
+          account: user.account,
+          avatar: user.avatar
+        })
+        await invoke('create_window', { config: pendingWindowConfig })
+      } else {
+        await invoke('create_window', { config: pendingConfig })
+      }
     }
 
   } catch (err) {
@@ -264,16 +294,15 @@ const createWindow = async(type: string) => {
   }
 }
 
-onMounted(async () => {
-  const userList = await userStore.getUserInfo()
-  const user = userList?.[0]
-  if (user) {
-    userInfo.value = user
+watch(userInfo, (newUser) => {
+  if (newUser) {
     getFriendList()
     getPendingLists()
     connectWebSocket()
   }
+}, { immediate: true })
 
+onMounted(() => {
   listen('refresh-friend-list', (event: any) => {
     getFriendList()
 
@@ -301,6 +330,19 @@ onMounted(async () => {
   })
 
   listen('refresh-pending-list', () => {
+    getPendingLists()
+  })
+
+  listen('friendAgreed', () => {
+    getFriendList()
+    getPendingLists()
+  })
+
+  listen('conversationListUpdate', () => {
+    getFriendList()
+  })
+
+  listen('pendingApplyUpdate', () => {
     getPendingLists()
   })
 
@@ -336,7 +378,6 @@ onMounted(async () => {
 onUnmounted(() => {
   if (socket) {
     socket.off('friendApplyReceived')
-    socket.off('friendListUpdate')
     socket.off('pendingApplyUpdate')
     socket.disconnect()
     socket = null
@@ -423,11 +464,21 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   gap: 5px;
+  min-width: 0;
 }
 
-.content span {
+.content span:first-child {
   font-size: 14px;
+  font-weight: 500;
+}
+
+.content span:last-child {
+  font-size: 12px;
+  color: #909399;
   width: 100%;
+  white-space: nowrap; /* 不换行 */
+  overflow: hidden; /* 隐藏溢出 */
+  text-overflow: ellipsis; /* 显示省略号 */
 }
 
 .count {

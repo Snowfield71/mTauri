@@ -15,3 +15,11 @@ export const pendingConfig: WindowConfigData = {
   route: "/pending",
   maximize: false,
 };
+
+export const createPendingConfig = (userData: { token: string; userId: string; account: string; avatar: string }): WindowConfigData => {
+  return {
+    ...pendingConfig,
+    label: `pending`,
+    route: `/pending?userData=${encodeURIComponent(JSON.stringify(userData))}`
+  }
+};

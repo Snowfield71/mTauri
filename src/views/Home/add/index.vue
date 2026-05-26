@@ -68,20 +68,68 @@
 </template>
 
 <script setup lang="ts">
-import { ref} from 'vue'
+import { ref, onMounted} from 'vue'
 import { emit } from "@tauri-apps/api/event"
 import type { SearchListItem } from '@/types/friend'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { applyFriend, searchFriend } from '@/api/friend'
 import { UserInfoStore } from '@/store/user/user.store'
-import { createConversation } from '@/api/conversation'
+import { createConversation, getConversationList } from '@/api/conversation'
 import { FriendStore } from '@/store/friend/friend.store'
 import { Search, Close, MessageBox } from '@element-plus/icons-vue'
+
+interface WindowUserData {
+  token: string
+  userId: string
+  account: string
+  avatar: string
+}
 
 const keyword = ref('')
 const userStore = UserInfoStore()
 const friendStore = FriendStore()
 const searchList = ref<SearchListItem[]>([])
+
+onMounted(() => {
+  const hash = window.location.hash
+  const queryIndex = hash.indexOf('?')
+  const queryString = queryIndex !== -1 ? hash.substring(queryIndex + 1) : ''
+  const urlParams = new URLSearchParams(queryString)
+  
+  const userDataStr = urlParams.get('userData')
+  
+  if (userDataStr) {
+    try {
+      const parsedData = JSON.parse(decodeURIComponent(userDataStr)) as WindowUserData
+      
+      if (parsedData) {
+        userStore.setToken(parsedData.token)
+        userStore.setWindowUserId(parsedData.userId)
+        userStore.setUserInfo({
+          userId: parseInt(parsedData.userId),
+          account: parsedData.account,
+          avatar: parsedData.avatar,
+          nickname: parsedData.account
+        })
+        
+        loadFriendList()
+      }
+    } catch (e) {
+      console.error('Failed to parse user data:', e)
+    }
+  }
+})
+
+const loadFriendList = () => {
+  const currentUser = userStore.getUserInfo()[0]
+  if (!currentUser) return
+  
+  getConversationList(currentUser.userId || 0).then((res: any) => {
+    if (res.code === 200) {
+      friendStore.setFriendList(res.data)
+    }
+  })
+}
 
 const clearKeyword = () => {
   keyword.value = ''
@@ -137,12 +185,14 @@ const open = (item: SearchListItem, index: number) => {
 
 const handleAdd = (item: SearchListItem, index: number) => {
   let friendId = item.id
+  let currentUser = userStore.getUserInfo()[0]
+  let userId = currentUser?.userId || 0
   applyFriend(item.id).then((res: any) => {
     if (res.code == 200) {
       if (res.message == '添加成功') {
         ElMessage.success(res.message)
         searchList.value[index].isAdded = true
-        handleCreatConversation(friendId)
+        handleCreatConversation(userId, friendId)
       } else {
         ElMessage.info(res.message)
       }
@@ -150,20 +200,22 @@ const handleAdd = (item: SearchListItem, index: number) => {
   })
 }
 
-const handleCreatConversation = (friendId: number) => {
-  createConversation(friendId)
+const handleCreatConversation = (userId: number, friendId: number) => {
+  createConversation(userId, friendId)
 }
 
-const sendMsg = (id: number) => {
-  friendStore.setSelectedId(id)
-  let info = friendStore.getFriendInfo(id)
-  if (info) {
-    friendStore.setFriendInfo(info)
+const sendMsg = async (id: number) => {
+  let friendInfo  = friendStore.friendList.find(f => f.targetUserId === id)
+  
+  if (friendInfo) {
+    friendStore.setSelectedId(id)
+    friendStore.setFriendInfo(friendInfo)
+
+    emit("friend-info-update", {
+      selectedId: id,
+      friendInfo: friendInfo
+    })
   }
-  emit("friend-info-update", {
-    selectedId: id,
-    friendInfo: info
-  })
 }
 </script>
 

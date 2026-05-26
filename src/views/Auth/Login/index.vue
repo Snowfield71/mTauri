@@ -138,7 +138,7 @@ const unlisten = ref<UnlistenFn | null>(null)
 
 const savedAccounts = ref<SaveAccountData[]>([])
 
-const defaultAvatarSrc = ref<string>(baseURL + '/uploads/avatars/DefaultAvatar.png')
+const defaultAvatarSrc = ref<string>(baseURL + 'uploads/avatars/DefaultAvatar.png ')
 
 const form = ref({
   account: '',
@@ -274,14 +274,14 @@ const selectSavedAccount = (item: SaveAccountData, index: number) => {
 }
 
 const removeAccount = (index: number) => {
-  userStore.deleteUserInfo(index)
+  userStore.deleteAccountFromList(index)
   savedAccounts.value.splice(index, 1)
   form.value.account = ''
 }
 
 onMounted(async () => {
   initWindowConfig(loginConfig)
-  let info = userStore.getUserInfo()
+  let info = userStore.getAccountList()
 
   if (info && info.length > 0) {
     savedAccounts.value = info.map(item => ({
@@ -295,7 +295,10 @@ onMounted(async () => {
     userStore.setIsRegister(false)
 
     form.value.account = event.payload.userInfo.account
-    savedAccounts.value[selectedAvatarIndex.value].avatar = event.payload.userInfo.avatar
+    
+    if (savedAccounts.value[selectedAvatarIndex.value]) {
+      savedAccounts.value[selectedAvatarIndex.value].avatar = event.payload.userInfo.avatar
+    }
   })
 })
 
