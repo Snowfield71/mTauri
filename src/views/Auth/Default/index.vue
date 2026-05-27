@@ -77,7 +77,7 @@ import { UserInfoStore } from '@/store/user/user.store.ts'
 import { FriendStore } from '@/store/friend/friend.store.ts'
 import { CircleCloseFilled } from '@element-plus/icons-vue'
 import { baseURL } from "@/util/request.ts"
-import { homeConfig } from '../../Home/Home/window.size.ts'
+import { createHomeConfig } from '../../Home/Home/window.size.ts'
 
 const store = UserInfoStore()
 const friendStore = FriendStore()
@@ -108,7 +108,14 @@ const loadUserData = () => {
     if(user) {
         const { phoneNumber, ...loadUserData } = user
         userInfo.value = loadUserData
-        token.value = store.token
+        token.value = store.token || store.getTokenByUserId(user.userId || 0)
+    } else {
+        const accounts = store.getAccountList()
+        if (accounts.length > 0) {
+            const { phoneNumber, ...loadUserData } = accounts[0]
+            userInfo.value = loadUserData
+            token.value = accounts[0].token || ''
+        }
     }
 } 
 
@@ -154,11 +161,14 @@ const submit = async () => {
       store.setUserInfo(user)
       store.setToken(token)
        
-      router.push({
-        name: 'Home'
+      const homeWindowConfig = createHomeConfig({
+        token: token,
+        userId: user.userId.toString(),
+        account: user.account,
+        avatar: user.avatar
       })
       
-      invoke('create_window', { config: homeConfig})
+      invoke('create_window', { config: homeWindowConfig})
 
       setTimeout(() => {
         invoke('close_window').catch(err => {

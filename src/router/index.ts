@@ -77,12 +77,24 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   from;
   const store = UserInfoStore();
+  
+  const hasStoredAccountWithToken = store.accountList.some(account => account.token);
   const isLoggedIn = !!store.token;
 
-  if (to.meta.requiresAuth && !isLoggedIn) {
+  if (to.name === 'Default') {
+    if (hasStoredAccountWithToken || isLoggedIn) {
+      next();
+    } else {
+      next({ name: "Login" });
+    }
+  } else if (to.meta.requiresAuth && !isLoggedIn) {
     next({ name: "Login", query: { redirect: to.fullPath } });
-  } else if (to.path === '/' && isLoggedIn) {
-    next({ name: "Home" });
+  } else if (to.path === '/' || to.name === 'AuthHome') {
+    if (hasStoredAccountWithToken || isLoggedIn) {
+      next({ name: "Default" });
+    } else {
+      next({ name: "Login" });
+    }
   } else {
     next();
   }

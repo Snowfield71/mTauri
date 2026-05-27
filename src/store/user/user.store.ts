@@ -26,13 +26,14 @@ export const UserInfoStore = defineStore("userInfo", {
     token: "",
     isRegister: false,
     windowUserId: "",
+
+    accountList: loadAccountList() as UserInfoData[],
   }),
-  persist: true,
   actions: {
     setIsRegister(isRegister: boolean) {
       this.isRegister = isRegister;
     },
-    
+
     setUserInfo(data: UserInfoData) {
       const index = this.userInfo.findIndex(
         (item) => item.userId === data.userId,
@@ -43,41 +44,76 @@ export const UserInfoStore = defineStore("userInfo", {
       } else {
         this.userInfo.unshift(data);
       }
+
+      const accountIndex = this.accountList.findIndex(
+        (item) => item.userId === data.userId,
+      );
+      if (accountIndex !== -1) {
+        const oldAccount = this.accountList[accountIndex];
+        this.accountList[accountIndex] = { ...oldAccount, ...data };
+      } else {
+        this.accountList.unshift(data);
+      }
+
+      saveAccountList(this.accountList);
     },
-    
+
     getUserInfo(): UserInfoData[] {
       return this.userInfo;
     },
-    
+
+    getAccountList(): UserInfoData[] {
+      return this.accountList;
+    },
+
     setToken(token: string) {
       this.token = token;
+      
+      if (this.userInfo.length > 0) {
+        const currentUser = this.userInfo[0];
+        const accountIndex = this.accountList.findIndex(
+          (item) => item.userId === currentUser.userId,
+        );
+        if (accountIndex !== -1) {
+          this.accountList[accountIndex] = { 
+            ...this.accountList[accountIndex], 
+            token 
+          };
+          saveAccountList(this.accountList);
+        }
+      }
     },
-    
+
     getToken() {
       return this.token;
     },
-    
+
+    getTokenByUserId(userId: number): string {
+      const account = this.accountList.find(item => item.userId === userId);
+      return account?.token || "";
+    },
+
     deleteUserInfo(index: number) {
       if (index >= 0 && index < this.userInfo.length) {
         this.userInfo.splice(index, 1);
       }
     },
-    
+
     deleteAccountFromList(index: number) {
       if (index >= 0 && index < this.accountList.length) {
         this.accountList.splice(index, 1);
         saveAccountList(this.accountList);
       }
     },
-    
+
     setWindowUserId(userId: string) {
       this.windowUserId = userId;
     },
-    
+
     getWindowUserId() {
       return this.windowUserId;
     },
-    
+
     clearAll() {
       this.userInfo = [];
       this.token = "";
