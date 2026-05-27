@@ -23,7 +23,7 @@ request.interceptors.request.use(
 
     if (!publicPaths.some((path) => url.includes(path))) {
       const store = UserInfoStore();
-      const token = store.getToken();
+      const token = store.token;
       if (token) {
         config.headers = config.headers || {};
         config.headers.Authorization = `Bearer ${token}`;

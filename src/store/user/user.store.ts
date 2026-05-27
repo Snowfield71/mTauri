@@ -26,16 +26,14 @@ export const UserInfoStore = defineStore("userInfo", {
     token: "",
     isRegister: false,
     windowUserId: "",
-
-    accountList: loadAccountList() as UserInfoData[],
   }),
+  persist: true,
   actions: {
     setIsRegister(isRegister: boolean) {
       this.isRegister = isRegister;
     },
     
     setUserInfo(data: UserInfoData) {
-
       const index = this.userInfo.findIndex(
         (item) => item.userId === data.userId,
       );
@@ -45,26 +43,10 @@ export const UserInfoStore = defineStore("userInfo", {
       } else {
         this.userInfo.unshift(data);
       }
-      
-      const accountIndex = this.accountList.findIndex(
-        (item) => item.userId === data.userId,
-      );
-      if (accountIndex !== -1) {
-        const oldAccount = this.accountList[accountIndex];
-        this.accountList[accountIndex] = { ...oldAccount, ...data };
-      } else {
-        this.accountList.unshift(data);
-      }
-      
-      saveAccountList(this.accountList);
     },
     
     getUserInfo(): UserInfoData[] {
       return this.userInfo;
-    },
-    
-    getAccountList(): UserInfoData[] {
-      return this.accountList;
     },
     
     setToken(token: string) {
