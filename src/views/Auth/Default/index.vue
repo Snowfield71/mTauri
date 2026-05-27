@@ -165,7 +165,8 @@ const submit = async () => {
         token: token,
         userId: user.userId.toString(),
         account: user.account,
-        avatar: user.avatar
+        avatar: user.avatar,
+        nickname: user.nickname
       })
       
       invoke('create_window', { config: homeWindowConfig})

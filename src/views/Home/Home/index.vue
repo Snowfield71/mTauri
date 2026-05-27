@@ -12,6 +12,7 @@ interface WindowUserData {
   userId: string
   account: string
   avatar: string
+  nickname: string
 }
 
 const currentUser = ref<WindowUserData | null>(null)
@@ -45,7 +46,7 @@ onMounted(async () => {
           userId: parseInt(currentUser.value.userId),
           account: currentUser.value.account,
           avatar: currentUser.value.avatar,
-          nickname: currentUser.value.account
+          nickname: currentUser.value.nickname
         })
       }
     } catch (e) {
