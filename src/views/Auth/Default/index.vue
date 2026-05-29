@@ -155,7 +155,6 @@ const submit = async () => {
 
       const { token, user} = res
 
-      // 先清除上次的聊天界面信息
       friendStore.clearFriendInfo()
 
       store.setUserInfo(user)

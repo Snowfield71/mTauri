@@ -49,11 +49,9 @@ export const UserInfoStore = defineStore("userInfo", {
         (item) => item.userId === data.userId,
       );
       if (accountIndex !== -1) {
-        const oldAccount = this.accountList[accountIndex];
-        this.accountList[accountIndex] = { ...oldAccount, ...data };
-      } else {
-        this.accountList.unshift(data);
+        this.accountList.splice(accountIndex, 1);
       }
+      this.accountList.unshift(data);
 
       saveAccountList(this.accountList);
     },
