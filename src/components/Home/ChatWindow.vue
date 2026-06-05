@@ -178,13 +178,10 @@ const connectWebSocket = (conversationId: number) => {
   })
 
   socket.on('connect', () => {
-    console.log('WebSocket 已连接')
     socket?.emit('join', { conversationId })
   })
 
-  socket.on('disconnect', () => {
-    console.log('WebSocket 已断开')
-  })
+  socket.on('disconnect', () => {})
 
   socket.on('newMessage', (msg) => {
     if (msg.conversationId === conversationIdData.value) {

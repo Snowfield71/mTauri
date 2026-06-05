@@ -208,13 +208,13 @@ const submit = async () => {
         type: 'success'
       })
 
-      const { code, ...userInfoData} = res.user
+      const userInfoData = res.user
+      userInfoData.token = res.token
       const token = res.token
       
       friendStore.clearFriendInfo()
 
       userStore.setUserInfo(userInfoData)
-      userStore.setToken(token)
 
       const homeWindowConfig = createHomeConfig({
         token: token,

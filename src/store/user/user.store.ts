@@ -49,9 +49,13 @@ export const UserInfoStore = defineStore("userInfo", {
         (item) => item.userId === data.userId,
       );
       if (accountIndex !== -1) {
+        // 保留现有的 token
+        const existingAccount = this.accountList[accountIndex];
         this.accountList.splice(accountIndex, 1);
+        this.accountList.unshift({ ...data, token: existingAccount.token });
+      } else {
+        this.accountList.unshift(data);
       }
-      this.accountList.unshift(data);
 
       saveAccountList(this.accountList);
     },
@@ -67,7 +71,6 @@ export const UserInfoStore = defineStore("userInfo", {
     setToken(token: string) {
       this.token = token;
       
-      // 更新 accountList 中第一项（最近登录的用户）的 token
       if (this.accountList.length > 0) {
         this.accountList[0] = { 
           ...this.accountList[0], 
