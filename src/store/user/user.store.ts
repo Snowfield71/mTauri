@@ -67,18 +67,13 @@ export const UserInfoStore = defineStore("userInfo", {
     setToken(token: string) {
       this.token = token;
       
-      if (this.userInfo.length > 0) {
-        const currentUser = this.userInfo[0];
-        const accountIndex = this.accountList.findIndex(
-          (item) => item.userId === currentUser.userId,
-        );
-        if (accountIndex !== -1) {
-          this.accountList[accountIndex] = { 
-            ...this.accountList[accountIndex], 
-            token 
-          };
-          saveAccountList(this.accountList);
-        }
+      // 更新 accountList 中第一项（最近登录的用户）的 token
+      if (this.accountList.length > 0) {
+        this.accountList[0] = { 
+          ...this.accountList[0], 
+          token 
+        };
+        saveAccountList(this.accountList);
       }
     },
 
