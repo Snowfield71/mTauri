@@ -31,8 +31,10 @@ import { initWindowConfig } from '../../../util/windowConfig'
 import type { FindMethodsCardContentData } from '../../../types/auth'
 
 const router = useRouter()
+const route = useRoute()
 const store = UserInfoStore()
 const phoneNumber = ref('')
+const account = computed(() => route.query.account as string)
 
 onMounted(() => {
   // 设置窗口大小
@@ -42,9 +44,7 @@ onMounted(() => {
   if (storePhone) {
     phoneNumber.value = storePhone
   } else {
-    const route = useRoute()
-    const account = route.query.account as string
-    findPhone(account).then((res: any) => {
+    findPhone(account.value).then((res: any) => {
       if (res.data) {
         phoneNumber.value = res.data.phoneNumber
       }
@@ -53,23 +53,27 @@ onMounted(() => {
 })
 
 const desensitizedPhone = computed(() => {
-  if (phoneNumber.value.length < 11) return phoneNumber.value
-  return phoneNumber.value.replace(
-    phoneNumber.value.substring(3, 9), 
-    '******'
-  )
+  if (!phoneNumber.value || phoneNumber.value.length < 11) return phoneNumber.value
+  // 显示前3位和后4位，中间脱敏：138******1234
+  return phoneNumber.value.substring(0, 3) + '******' + phoneNumber.value.substring(9)
 })
 
 const findMethods = computed<FindMethodsCardContentData[]>(() => [
   {
     name: 'PhoneMethod',
-    queryParams: { phoneNumber: desensitizedPhone.value },
+    queryParams: { 
+      phoneNumber: desensitizedPhone.value,
+      account: account.value
+    },
     title: '手机号',
     description: `通过${desensitizedPhone.value}接受短信验证码`,
     imgSrc: '/phone.png'
   },
   {
     name: 'PersonalDataMethod',
+    queryParams: {
+      account: account.value
+    },
     title: '资料辅助验证',
     description: '填写账号信息与个人资料进行验证',
     imgSrc: '/personal_data.png'

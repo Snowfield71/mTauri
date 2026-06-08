@@ -30,7 +30,7 @@
             id="next-step"
             @click="nextStep"
           >
-            下一步
+            提交
           </el-button>
         </div>
       </el-form>
@@ -54,7 +54,10 @@ const loading = ref(false)
 
 const route = useRoute()
 const router = useRouter()
-const phoneNumber = route.query.phoneNumber
+
+// 从 URL 参数获取手机号和账户信息
+const phoneNumber = route.query.phoneNumber as string
+const account = route.query.account as string
 
 const phoneMethodFormRef = ref<InstanceType<typeof ElForm> | null>(null)
 
@@ -104,7 +107,8 @@ const nextStep = () => {
               { 
                 name: 'ResetPwd',
                 query: {
-                  phoneNumber: phoneVerificationData.value.phoneNumber
+                  phoneNumber: phoneVerificationData.value.phoneNumber,
+                  account: account
                 }
               },
             )

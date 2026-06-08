@@ -35,14 +35,17 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
 import { ElCard, ElForm, ElMessage } from 'element-plus'
 import { useRouter } from 'vue-router'
 import { verifyPhone } from '@/api/auth.ts'
-import { forgetPwdConfig } from './window.size'
+import { createForgetPwdConfig } from './window.size'
 import { debounce } from '../../../util/index.ts'
 import { UserInfoStore } from '@/store/user/user.store'
 import { initWindowConfig } from '../../../util/windowConfig'
+import type { SaveAccountData } from '../../../types/auth'
 
+const route = useRoute()
 const router = useRouter()
 const store = UserInfoStore()
 
@@ -98,11 +101,30 @@ const nextStep = () => {
 }
 
 onMounted(() => {
-  initWindowConfig(forgetPwdConfig)
+  // 初始化窗口配置
+  const config = createForgetPwdConfig()
+  initWindowConfig(config)
 
-  const savedAccounts = store.getUserInfo()
-  if (savedAccounts.length > 0) {
-    form.value.account = savedAccounts[0].account
+  // 从 URL 参数中获取传递的账户信息
+  const accountDataStr = route.query.accountData as string
+  if (accountDataStr) {
+    try {
+      const accountData: SaveAccountData = JSON.parse(decodeURIComponent(accountDataStr))
+      form.value.account = accountData.account || ''
+    } catch (error) {
+      console.error('解析账户数据失败:', error)
+      // 降级：从 store 获取
+      const savedAccounts = store.getUserInfo()
+      if (savedAccounts.length > 0) {
+        form.value.account = savedAccounts[0].account
+      }
+    }
+  } else {
+    // 降级：从 store 获取
+    const savedAccounts = store.getUserInfo()
+    if (savedAccounts.length > 0) {
+      form.value.account = savedAccounts[0].account
+    }
   }
 })
 </script>

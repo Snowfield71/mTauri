@@ -116,7 +116,7 @@ import { initWindowConfig } from '@/util/windowConfig'
 import type { UnlistenFn } from '@tauri-apps/api/event'
 import { UserInfoStore } from '@/store/user/user.store'
 import { registerConfig } from '../Register/window.size'
-import { forgetPwdConfig } from '../ForgetPwd/window.size'
+import { createForgetPwdConfig } from '../ForgetPwd/window.size'
 import type { UserInfoData } from '@/store/user/user.type'
 import { createHomeConfig } from '@/views/Home/Home/window.size'
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
@@ -256,7 +256,8 @@ const openAuthWindow = async (type: 'Register' | 'ForgetPwd') => {
         await invoke('create_window', { config: registerConfig })
       }
       if (type === 'ForgetPwd') {
-        await invoke('create_window', { config: forgetPwdConfig })
+        const currentAccount = savedAccounts.value[selectedAvatarIndex.value]
+        await invoke('create_window', { config: createForgetPwdConfig(currentAccount) })
       }
 
      moreOptionsPopover.value?.hide()
