@@ -30,7 +30,7 @@ mTauri/
 
 ### 后端
 - **框架**: NestJS
-- **数据库**: SQLite
+- **数据库**: MySQL
 - **认证**: JWT
 - **实时通信**: Socket.IO
 
